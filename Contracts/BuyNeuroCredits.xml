@@ -56,7 +56,7 @@
 				</paragraph>
 			</description>
 		</stringParameter>
-		<numericalParameter name="DueDays" min="0" minIncluded="false" max="30" maxIncluded="true" exp="Days=floor(Days)">
+		<numericalParameter name="DueDays" min="0" minIncluded="false" max="30" maxIncluded="true" exp="DueDays=floor(DueDays)">
 			<description xml:lang="en">
 				<paragraph>
 					<text>Number of days before the amount is due to be paid.</text>
