@@ -1,0 +1,564 @@
+<contract archiveOpt="P2Y" archiveReq="P1Y" canActAsTemplate="true" duration="P7D" id="BuyNeuroCredits" visibility="PublicSearchable" xmlns="urn:ieee:iot:leg:sc:1.0">
+	<BuyEDaler serviceId="TAG.Payments.NeuroCredits.NeuroCreditsService" serviceProvider="TAG.Payments.NeuroCredits.NeuroCreditsServiceProvider" xmlns="https://paiwise.tagroot.io/Schema/PaymentInstructions.xsd">
+		<Amount>
+			<ParameterReference parameter="Amount" />
+		</Amount>
+		<Currency>
+			<ParameterReference parameter="Currency" />
+		</Currency>
+	</BuyEDaler>
+	<role maxCount="1" minCount="1" name="Buyer">
+		<description xml:lang="en">
+			<paragraph>
+				<text>The party that will buy </text>
+				<italic>
+					<text>Neuro-Credits</text>
+				</italic>
+				<text>™.</text>
+			</paragraph>
+		</description>
+	</role>
+	<role maxCount="1" minCount="1" name="TrustProvider">
+		<description xml:lang="en">
+			<paragraph>
+				<text>The Trust Provider selling </text>
+				<italic>
+					<text>Neuro-Credits</text>
+				</italic>
+				<text>™ to the </text>
+				<italic>
+					<text>Buyer</text>
+				</italic>
+				<text>.</text>
+			</paragraph>
+		</description>
+	</role>
+	<parts>
+		<templateOnly />
+	</parts>
+	<parameters>
+		<numericalParameter name="Amount" min="0" minIncluded="false">
+			<description xml:lang="en">
+				<paragraph>
+					<text>Amount of </text>
+					<italic>
+						<text>Neuro-Credits</text>
+					</italic>
+					<text>™</text>
+					<text> to buy.</text>
+				</paragraph>
+			</description>
+		</numericalParameter>
+		<stringParameter name="Currency" value="" regEx="[A-Z]{3}">
+			<description xml:lang="en">
+				<paragraph>
+					<text>Currency of the transaction.</text>
+				</paragraph>
+			</description>
+		</stringParameter>
+		<numericalParameter name="DueDays" min="0" minIncluded="false" max="30" maxIncluded="true" exp="Days=floor(Days)">
+			<description xml:lang="en">
+				<paragraph>
+					<text>Number of days before the amount is due to be paid.</text>
+				</paragraph>
+			</description>
+		</numericalParameter>
+		<numericalParameter name="DueInterest" min="0" minIncluded="false">
+			<description xml:lang="en">
+				<paragraph>
+					<text>Interest rate (in percent) on amount, if not paid by due date.</text>
+				</paragraph>
+			</description>
+		</numericalParameter>
+		<calcParameter name="DueDate" exp="Today.AddDays(DueDays)">
+			<description xml:lang="en">
+				<paragraph>
+					<text>Date before which payment of the amount is due.</text>
+				</paragraph>
+			</description>
+		</calcParameter>
+		<roleParameter name="BuyerName" role="Buyer" index="1" property="NAME" required="true">
+			<description xml:lang="en">
+				<paragraph>
+					<text>Full name of the </text>
+					<bold>
+						<text>Buyer</text>
+					</bold>
+					<text>.</text>
+				</paragraph>
+			</description>
+		</roleParameter>
+		<roleParameter name="BuyerPNr" role="Buyer" index="1" property="PNR" required="true">
+			<description xml:lang="en">
+				<paragraph>
+					<text>Personal number of the </text>
+					<bold>
+						<text>Buyer</text>
+					</bold>
+					<text>.</text>
+				</paragraph>
+			</description>
+		</roleParameter>
+		<roleParameter name="BuyerAddress" role="Buyer" index="1" property="ADDR" required="true">
+			<description xml:lang="en">
+				<paragraph>
+					<text>Address of the </text>
+					<bold>
+						<text>Buyer</text>
+					</bold>
+					<text>.</text>
+				</paragraph>
+			</description>
+		</roleParameter>
+		<roleParameter name="BuyerAddress2" role="Buyer" index="1" property="ADDR2" required="false">
+			<description xml:lang="en">
+				<paragraph>
+					<text>Address (second line) of the </text>
+					<bold>
+						<text>Buyer</text>
+					</bold>
+					<text>.</text>
+				</paragraph>
+			</description>
+		</roleParameter>
+		<roleParameter name="BuyerZip" role="Buyer" index="1" property="ZIP" required="true">
+			<description xml:lang="en">
+				<paragraph>
+					<text>Postal Code of the </text>
+					<bold>
+						<text>Buyer</text>
+					</bold>
+					<text>.</text>
+				</paragraph>
+			</description>
+		</roleParameter>
+		<roleParameter name="BuyerCity" role="Buyer" index="1" property="CITY" required="true">
+			<description xml:lang="en">
+				<paragraph>
+					<text>City of the </text>
+					<bold>
+						<text>Buyer</text>
+					</bold>
+					<text>.</text>
+				</paragraph>
+			</description>
+		</roleParameter>
+		<roleParameter name="BuyerCountry" role="Buyer" index="1" property="COUNTRY" required="true">
+			<description xml:lang="en">
+				<paragraph>
+					<text>Country of the </text>
+					<bold>
+						<text>Buyer</text>
+					</bold>
+					<text>.</text>
+				</paragraph>
+			</description>
+		</roleParameter>
+		<roleParameter name="BuyerOrgName" role="Buyer" index="1" property="ORGNAME" required="false">
+			<description xml:lang="en">
+				<paragraph>
+					<text>Organization name of the </text>
+					<bold>
+						<text>Buyer</text>
+					</bold>
+					<text>.</text>
+				</paragraph>
+			</description>
+		</roleParameter>
+		<roleParameter name="BuyerOrgNr" role="Buyer" index="1" property="ORGNR" required="false">
+			<description xml:lang="en">
+				<paragraph>
+					<text>Organization number of the </text>
+					<bold>
+						<text>Buyer</text>
+					</bold>
+					<text>.</text>
+				</paragraph>
+			</description>
+		</roleParameter>
+		<roleParameter name="BuyerOrgDept" role="Buyer" index="1" property="ORGDEPT" required="false">
+			<description xml:lang="en">
+				<paragraph>
+					<text>Department of the </text>
+					<bold>
+						<text>Buyer</text>
+					</bold>
+					<text>.</text>
+				</paragraph>
+			</description>
+		</roleParameter>
+		<roleParameter name="BuyerOrgRole" role="Buyer" index="1" property="ORGROLE" required="false">
+			<description xml:lang="en">
+				<paragraph>
+					<text>Role of the </text>
+					<bold>
+						<text>Buyer</text>
+					</bold>
+					<text>.</text>
+				</paragraph>
+			</description>
+		</roleParameter>
+		<roleParameter name="BuyerOrgAddress" role="Buyer" index="1" property="ORGADDR" required="false">
+			<description xml:lang="en">
+				<paragraph>
+					<text>Organization Address of the </text>
+					<bold>
+						<text>Buyer</text>
+					</bold>
+					<text>.</text>
+				</paragraph>
+			</description>
+		</roleParameter>
+		<roleParameter name="BuyerOrgAddress2" role="Buyer" index="1" property="ORGADDR2" required="false">
+			<description xml:lang="en">
+				<paragraph>
+					<text>Organization Address (second line) of the </text>
+					<bold>
+						<text>Buyer</text>
+					</bold>
+					<text>.</text>
+				</paragraph>
+			</description>
+		</roleParameter>
+		<roleParameter name="BuyerOrgZip" role="Buyer" index="1" property="ORGZIP" required="false">
+			<description xml:lang="en">
+				<paragraph>
+					<text>Organization Postal Code of the </text>
+					<bold>
+						<text>Buyer</text>
+					</bold>
+					<text>.</text>
+				</paragraph>
+			</description>
+		</roleParameter>
+		<roleParameter name="BuyerOrgCity" role="Buyer" index="1" property="ORGCITY" required="false">
+			<description xml:lang="en">
+				<paragraph>
+					<text>Organization City of the </text>
+					<bold>
+						<text>Buyer</text>
+					</bold>
+					<text>.</text>
+				</paragraph>
+			</description>
+		</roleParameter>
+		<roleParameter name="BuyerOrgCountry" role="Buyer" index="1" property="ORGCOUNTRY" required="false">
+			<description xml:lang="en">
+				<paragraph>
+					<text>Organization Country of the </text>
+					<bold>
+						<text>Buyer</text>
+					</bold>
+					<text>.</text>
+				</paragraph>
+			</description>
+		</roleParameter>
+	</parameters>
+	<humanReadableText xml:lang="en">
+		<section>
+			<header>
+				<text>Buy Neuro-Credits™</text>
+			</header>
+			<body>
+				<paragraph>
+					<text>The </text>
+					<bold>
+						<text>Buyer</text>
+					</bold>
+					<text> hereby agrees to buy </text>
+					<italic>
+						<text>Neuro-Credits</text>
+					</italic>
+					<text>™ to the amount of </text>
+					<bold>
+						<parameter name="Amount" />
+						<text> </text>
+						<parameter name="Currency" />
+					</bold>
+					<text> on credit, from the </text>
+					<bold>
+						<text>Trust Provider</text>
+					</bold>
+					<text>. The amount will be invoiced to the </text>
+					<bold>
+						<text>Buyer</text>
+					</bold>
+					<text>, on the address provided in the digital ID used to sign the contract.</text>
+				</paragraph>
+				<section>
+					<header>
+						<text>Payment Terms</text>
+					</header>
+					<body>
+						<paragraph>
+							<text>The </text>
+							<bold>
+								<text>Buyer</text>
+							</bold>
+							<text> commits to pay the amount within </text>
+							<bold>
+								<parameter name="DueDays" />
+								<text> days</text>
+							</bold>
+							<text>, counted from the time this contract is signed (</text>
+							<bold>
+								<parameter name="DueDate" />
+							</bold>
+							<text>). If the buyer does not pay the amount in time, an interest rate of </text>
+							<bold>
+								<parameter name="DueInterest" />
+								<text>%</text>
+							</bold>
+							<text> will be applied, as will additional invoice fees.</text>
+						</paragraph>
+					</body>
+				</section>
+				<section>
+					<header>
+						<text>Approval Process</text>
+					</header>
+					<body>
+						<paragraph>
+							<text>Once the </text>
+							<bold>
+								<text>Buyer</text>
+							</bold>
+							<text> has signed the contract, the </text>
+							<bold>
+								<text>Trust Provider</text>
+							</bold>
+							<text> will review the request. If details in the contract are in order, the </text>
+							<bold>
+								<text>Trust Provider</text>
+							</bold>
+							<text> will also sign the contract, and send it to the </text>
+							<italic>
+								<text>Neuro-Credits</text>
+							</italic>
+							<text>™ service for processing. This service checks if the user is authorized to buy credits, checks current credit balance, the payment status on previous invoices and the credit limit of the </text>
+							<bold>
+								<text>Buyer</text>
+							</bold>
+							<text>. If everything is OK, the </text>
+							<italic>
+								<text>Neuro-Credits</text>
+							</italic>
+							<text>™ will be approved, and the corresponding </text>
+							<italic>
+								<text>eDaler</text>
+							</italic>
+							<text>® generated. If not OK, the contract will be set to a </text>
+							<italic>
+								<text>Failed</text>
+							</italic>
+							<text> state, and a message will be sent to the </text>
+							<bold>
+								<text>Buyer</text>
+							</bold>
+							<text> accordingly.</text>
+						</paragraph>
+					</body>
+				</section>
+				<section>
+					<header>
+						<text>Currency Conversion</text>
+					</header>
+					<body>
+						<paragraph>
+							<text>In case the </text>
+							<bold>
+								<text>Buyer</text>
+							</bold>
+							<text> buys </text>
+							<italic>
+								<text>Neuro-Credits</text>
+							</italic>
+							<text>™ in a currency that is not the default currency of the </text>
+							<bold>
+								<text>Trust Provider</text>
+							</bold>
+							<text>, which is also the currency used by the </text>
+							<italic>
+								<text>eDaler</text>
+							</italic>
+							<text>® generated, a </text>
+							<italic>
+								<text>Currency Conversion</text>
+							</italic>
+							<text> service, selected by the </text>
+							<bold>
+								<text>Trust Provider</text>
+							</bold>
+							<text>, will be used to convert the requested amount to the currency used by the </text>
+							<bold>
+								<text>Trust Provider</text>
+							</bold>
+							<text>. The invoice sent will use the currency requested, but the generated </text>
+							<italic>
+								<text>eDaler</text>
+							</italic>
+							<text>® will use the default currency of the </text>
+							<bold>
+								<text>Trust Provider</text>
+							</bold>
+							<text>. This currency conversion may incur additional transaction and service fees, which will be deducted from the amount of </text>
+							<italic>
+								<text>eDaler</text>
+							</italic>
+							<text>® generated.</text>
+						</paragraph>
+					</body>
+				</section>
+				<section>
+					<header>
+						<text>Invoice information</text>
+					</header>
+					<body>
+						<paragraph>
+							<text>Following is a summary of the invoice data included in the contract:</text>
+						</paragraph>
+						<table>
+							<row>
+								<cell colSpan="2" header="true" alignment="Center">
+									<text>Agreed upon credit details</text>
+								</cell>
+							</row>
+							<row>
+								<cell colSpan="1" header="false" alignment="Left">
+									<text>Amount:</text>
+								</cell>
+								<cell colSpan="1" header="false" alignment="Right">
+									<parameter name="Amount" />
+									<text> </text>
+									<parameter name="Currency" />
+								</cell>
+							</row>
+							<row>
+								<cell colSpan="1" header="false" alignment="Left">
+									<text>Due Date:</text>
+								</cell>
+								<cell colSpan="1" header="false" alignment="Right">
+									<parameter name="DueDate" />
+								</cell>
+							</row>
+						</table>
+						<table>
+							<row>
+								<cell colSpan="2" header="true" alignment="Center">
+									<text>Personal details</text>
+								</cell>
+							</row>
+							<row>
+								<cell colSpan="1" header="false" alignment="Left">
+									<text>Name:</text>
+								</cell>
+								<cell colSpan="1" header="false" alignment="Left">
+									<parameter name="BuyerName" />
+								</cell>
+							</row>
+							<row>
+								<cell colSpan="1" header="false" alignment="Left">
+									<text>Personal Number:</text>
+								</cell>
+								<cell colSpan="1" header="false" alignment="Left">
+									<parameter name="BuyerPNr" />
+								</cell>
+							</row>
+							<row>
+								<cell colSpan="1" header="false" alignment="Left">
+									<text>Address:</text>
+								</cell>
+								<cell colSpan="1" header="false" alignment="Left">
+									<parameter name="BuyerAddress" />
+									<text> </text>
+									<parameter name="BuyerAddress2" />
+								</cell>
+							</row>
+							<row>
+								<cell colSpan="1" header="false" alignment="Left">
+									<text>Postal Code:</text>
+								</cell>
+								<cell colSpan="1" header="false" alignment="Left">
+									<parameter name="BuyerZip" />
+								</cell>
+							</row>
+							<row>
+								<cell colSpan="1" header="false" alignment="Left">
+									<text>City:</text>
+								</cell>
+								<cell colSpan="1" header="false" alignment="Left">
+									<parameter name="BuyerCity" />
+								</cell>
+							</row>
+							<row>
+								<cell colSpan="1" header="false" alignment="Left">
+									<text>Country:</text>
+								</cell>
+								<cell colSpan="1" header="false" alignment="Left">
+									<parameter name="BuyerCountry" />
+								</cell>
+							</row>
+						</table>
+						<table>
+							<row>
+								<cell colSpan="2" header="true" alignment="Center">
+									<text>Organization details</text>
+								</cell>
+							</row>
+							<row>
+								<cell colSpan="1" header="false" alignment="Left">
+									<text>Organization Name:</text>
+								</cell>
+								<cell colSpan="1" header="false" alignment="Left">
+									<parameter name="BuyerOrgName" />
+								</cell>
+							</row>
+							<row>
+								<cell colSpan="1" header="false" alignment="Left">
+									<text>Organization Number:</text>
+								</cell>
+								<cell colSpan="1" header="false" alignment="Left">
+									<parameter name="BuyerOrgNr" />
+								</cell>
+							</row>
+							<row>
+								<cell colSpan="1" header="false" alignment="Left">
+									<text>Address:</text>
+								</cell>
+								<cell colSpan="1" header="false" alignment="Left">
+									<parameter name="BuyerOrgAddress" />
+									<text> </text>
+									<parameter name="BuyerOrgAddress2" />
+								</cell>
+							</row>
+							<row>
+								<cell colSpan="1" header="false" alignment="Left">
+									<text>Postal Code:</text>
+								</cell>
+								<cell colSpan="1" header="false" alignment="Left">
+									<parameter name="BuyerOrgZip" />
+								</cell>
+							</row>
+							<row>
+								<cell colSpan="1" header="false" alignment="Left">
+									<text>City:</text>
+								</cell>
+								<cell colSpan="1" header="false" alignment="Left">
+									<parameter name="BuyerOrgCity" />
+								</cell>
+							</row>
+							<row>
+								<cell colSpan="1" header="false" alignment="Left">
+									<text>Country:</text>
+								</cell>
+								<cell colSpan="1" header="false" alignment="Left">
+									<parameter name="BuyerOrgCountry" />
+								</cell>
+							</row>
+						</table>
+					</body>
+				</section>
+			</body>
+		</section>
+	</humanReadableText>
+</contract>
