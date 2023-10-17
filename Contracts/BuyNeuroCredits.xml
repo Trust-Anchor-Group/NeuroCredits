@@ -77,7 +77,7 @@
 				</paragraph>
 			</description>
 		</calcParameter>
-		<roleParameter name="BuyerName" role="Buyer" index="1" property="NAME" required="true">
+		<roleParameter name="BuyerName" role="Buyer" index="1" property="FULLNAME" required="true">
 			<description xml:lang="en">
 				<paragraph>
 					<text>Full name of the </text>
@@ -99,21 +99,10 @@
 				</paragraph>
 			</description>
 		</roleParameter>
-		<roleParameter name="BuyerAddress" role="Buyer" index="1" property="ADDR" required="true">
+		<roleParameter name="BuyerAddress" role="Buyer" index="1" property="FULLADDR" required="true">
 			<description xml:lang="en">
 				<paragraph>
 					<text>Address of the </text>
-					<bold>
-						<text>Buyer</text>
-					</bold>
-					<text>.</text>
-				</paragraph>
-			</description>
-		</roleParameter>
-		<roleParameter name="BuyerAddress2" role="Buyer" index="1" property="ADDR2" required="false">
-			<description xml:lang="en">
-				<paragraph>
-					<text>Address (second line) of the </text>
 					<bold>
 						<text>Buyer</text>
 					</bold>
@@ -198,21 +187,10 @@
 				</paragraph>
 			</description>
 		</roleParameter>
-		<roleParameter name="BuyerOrgAddress" role="Buyer" index="1" property="ORGADDR" required="false">
+		<roleParameter name="BuyerOrgAddress" role="Buyer" index="1" property="FULLORGADDR" required="false">
 			<description xml:lang="en">
 				<paragraph>
 					<text>Organization Address of the </text>
-					<bold>
-						<text>Buyer</text>
-					</bold>
-					<text>.</text>
-				</paragraph>
-			</description>
-		</roleParameter>
-		<roleParameter name="BuyerOrgAddress2" role="Buyer" index="1" property="ORGADDR2" required="false">
-			<description xml:lang="en">
-				<paragraph>
-					<text>Organization Address (second line) of the </text>
 					<bold>
 						<text>Buyer</text>
 					</bold>
@@ -470,8 +448,6 @@
 								</cell>
 								<cell colSpan="1" header="false" alignment="Left">
 									<parameter name="BuyerAddress" />
-									<text> </text>
-									<parameter name="BuyerAddress2" />
 								</cell>
 							</row>
 							<row>
@@ -527,8 +503,6 @@
 								</cell>
 								<cell colSpan="1" header="false" alignment="Left">
 									<parameter name="BuyerOrgAddress" />
-									<text> </text>
-									<parameter name="BuyerOrgAddress2" />
 								</cell>
 							</row>
 							<row>
