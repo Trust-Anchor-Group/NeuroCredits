@@ -70,7 +70,7 @@
 				</paragraph>
 			</description>
 		</numericalParameter>
-		<calcParameter name="DueDate" exp="Today.AddDays(DueDays)">
+		<calcParameter name="DueDate" exp="Today+TimeSpan(DueDays,0,0,0)">
 			<description xml:lang="en">
 				<paragraph>
 					<text>Date before which payment of the amount is due.</text>
