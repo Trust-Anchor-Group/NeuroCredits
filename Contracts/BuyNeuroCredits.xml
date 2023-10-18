@@ -419,6 +419,15 @@
 									<parameter name="DueDate" />
 								</cell>
 							</row>
+							<row>
+								<cell colSpan="1" header="false" alignment="Left">
+									<text>Late payment interest:</text>
+								</cell>
+								<cell colSpan="1" header="false" alignment="Right">
+									<parameter name="DueInterest" />
+									<text>%</text>
+								</cell>
+							</row>
 						</table>
 						<table>
 							<row>
