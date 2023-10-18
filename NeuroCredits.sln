@@ -8,11 +8,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TAG.Payments.NeuroCredits", "TAG.Payments.NeuroCredits\TAG.Payments.NeuroCredits.csproj", "{EF2FEC0F-163D-4280-B878-0403434B1346}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TAG.Payments.NeuroCredits", "TAG.Payments.NeuroCredits\TAG.Payments.NeuroCredits.csproj", "{EF2FEC0F-163D-4280-B878-0403434B1346}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Contracts", "Contracts", "{F6845DF9-228F-417C-A33D-638D2BEEC5AC}"
 	ProjectSection(SolutionItems) = preProject
 		Contracts\BuyNeuroCredits.xml = Contracts\BuyNeuroCredits.xml
+		Contracts\SellNeuroCredits.xml = Contracts\SellNeuroCredits.xml
 	EndProjectSection
 EndProject
 Global
