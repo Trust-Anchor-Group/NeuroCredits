@@ -282,7 +282,11 @@
 							<bold>
 								<parameter name="DueDate" />
 							</bold>
-							<text>). If the buyer does not pay the amount in time, an interest rate of </text>
+							<text>). If the </text>
+							<bold>
+								<text>Buyer</text>
+							</bold>
+							<text> does not pay the amount in time, an interest rate of </text>
 							<bold>
 								<parameter name="DueInterest" />
 								<text>%</text>
