@@ -1,0 +1,485 @@
+<contract archiveOpt="P2Y" archiveReq="P1Y" canActAsTemplate="true" duration="P7D" id="SellNeuroCredits" visibility="PublicSearchable" xmlns="urn:ieee:iot:leg:sc:1.0">
+	<SellEDaler serviceId="TAG.Payments.NeuroCredits.NeuroCreditsService" serviceProvider="TAG.Payments.NeuroCredits.NeuroCreditsServiceProvider" xmlns="https://paiwise.tagroot.io/Schema/PaymentInstructions.xsd">
+		<Amount>
+			<ParameterReference parameter="Amount" />
+		</Amount>
+		<Currency>
+			<ParameterReference parameter="Currency" />
+		</Currency>
+	</SellEDaler>
+	<role maxCount="1" minCount="1" name="Seller">
+		<description xml:lang="en">
+			<paragraph>
+				<text>The party that will sell </text>
+				<italic>
+					<text>eDaler</text>
+				</italic>
+				<text>® to cancel the debt incurred by buying </text>
+				<italic>
+					<text>Neuro-Credits</text>
+				</italic>
+				<text>™.</text>
+			</paragraph>
+		</description>
+	</role>
+	<role maxCount="1" minCount="1" name="TrustProvider">
+		<description xml:lang="en">
+			<paragraph>
+				<text>The Trust Provider buying </text>
+				<italic>
+					<text>eDaler</text>
+				</italic>
+				<text>® from the </text>
+				<italic>
+					<text>Seller</text>
+				</italic>
+				<text> to cancel the debt incurred by the </text>
+				<italic>
+					<text>Seller</text>
+				</italic>
+				<text> for buying </text>
+				<italic>
+					<text>Neuro-Credits</text>
+				</italic>
+				<text>™.</text>
+			</paragraph>
+		</description>
+	</role>
+	<parts>
+		<templateOnly />
+	</parts>
+	<parameters>
+		<numericalParameter name="Amount" min="0" minIncluded="false">
+			<description xml:lang="en">
+				<paragraph>
+					<text>Amount of </text>
+					<italic>
+						<text>eDaler</text>
+					</italic>
+					<text>®</text>
+					<text> to buy.</text>
+				</paragraph>
+			</description>
+		</numericalParameter>
+		<stringParameter name="Currency" value="" regEx="[A-Z]{3}">
+			<description xml:lang="en">
+				<paragraph>
+					<text>Currency of the transaction.</text>
+				</paragraph>
+			</description>
+		</stringParameter>
+		<roleParameter name="SellerName" role="Seller" index="1" property="FULLNAME" required="true">
+			<description xml:lang="en">
+				<paragraph>
+					<text>Full name of the </text>
+					<bold>
+						<text>Seller</text>
+					</bold>
+					<text>.</text>
+				</paragraph>
+			</description>
+		</roleParameter>
+		<roleParameter name="SellerPNr" role="Seller" index="1" property="PNR" required="true">
+			<description xml:lang="en">
+				<paragraph>
+					<text>Personal number of the </text>
+					<bold>
+						<text>Seller</text>
+					</bold>
+					<text>.</text>
+				</paragraph>
+			</description>
+		</roleParameter>
+		<roleParameter name="SellerAddress" role="Seller" index="1" property="FULLADDR" required="true">
+			<description xml:lang="en">
+				<paragraph>
+					<text>Address of the </text>
+					<bold>
+						<text>Seller</text>
+					</bold>
+					<text>.</text>
+				</paragraph>
+			</description>
+		</roleParameter>
+		<roleParameter name="SellerZip" role="Seller" index="1" property="ZIP" required="true">
+			<description xml:lang="en">
+				<paragraph>
+					<text>Postal Code of the </text>
+					<bold>
+						<text>Seller</text>
+					</bold>
+					<text>.</text>
+				</paragraph>
+			</description>
+		</roleParameter>
+		<roleParameter name="SellerCity" role="Seller" index="1" property="CITY" required="true">
+			<description xml:lang="en">
+				<paragraph>
+					<text>City of the </text>
+					<bold>
+						<text>Seller</text>
+					</bold>
+					<text>.</text>
+				</paragraph>
+			</description>
+		</roleParameter>
+		<roleParameter name="SellerCountry" role="Seller" index="1" property="COUNTRY" required="true">
+			<description xml:lang="en">
+				<paragraph>
+					<text>Country of the </text>
+					<bold>
+						<text>Seller</text>
+					</bold>
+					<text>.</text>
+				</paragraph>
+			</description>
+		</roleParameter>
+		<roleParameter name="SellerOrgName" role="Seller" index="1" property="ORGNAME" required="false">
+			<description xml:lang="en">
+				<paragraph>
+					<text>Organization name of the </text>
+					<bold>
+						<text>Seller</text>
+					</bold>
+					<text>.</text>
+				</paragraph>
+			</description>
+		</roleParameter>
+		<roleParameter name="SellerOrgNr" role="Seller" index="1" property="ORGNR" required="false">
+			<description xml:lang="en">
+				<paragraph>
+					<text>Organization number of the </text>
+					<bold>
+						<text>Seller</text>
+					</bold>
+					<text>.</text>
+				</paragraph>
+			</description>
+		</roleParameter>
+		<roleParameter name="SellerOrgDept" role="Seller" index="1" property="ORGDEPT" required="false">
+			<description xml:lang="en">
+				<paragraph>
+					<text>Department of the </text>
+					<bold>
+						<text>Seller</text>
+					</bold>
+					<text>.</text>
+				</paragraph>
+			</description>
+		</roleParameter>
+		<roleParameter name="SellerOrgRole" role="Seller" index="1" property="ORGROLE" required="false">
+			<description xml:lang="en">
+				<paragraph>
+					<text>Role of the </text>
+					<bold>
+						<text>Seller</text>
+					</bold>
+					<text>.</text>
+				</paragraph>
+			</description>
+		</roleParameter>
+		<roleParameter name="SellerOrgAddress" role="Seller" index="1" property="FULLORGADDR" required="false">
+			<description xml:lang="en">
+				<paragraph>
+					<text>Organization Address of the </text>
+					<bold>
+						<text>Seller</text>
+					</bold>
+					<text>.</text>
+				</paragraph>
+			</description>
+		</roleParameter>
+		<roleParameter name="SellerOrgZip" role="Seller" index="1" property="ORGZIP" required="false">
+			<description xml:lang="en">
+				<paragraph>
+					<text>Organization Postal Code of the </text>
+					<bold>
+						<text>Seller</text>
+					</bold>
+					<text>.</text>
+				</paragraph>
+			</description>
+		</roleParameter>
+		<roleParameter name="SellerOrgCity" role="Seller" index="1" property="ORGCITY" required="false">
+			<description xml:lang="en">
+				<paragraph>
+					<text>Organization City of the </text>
+					<bold>
+						<text>Seller</text>
+					</bold>
+					<text>.</text>
+				</paragraph>
+			</description>
+		</roleParameter>
+		<roleParameter name="SellerOrgCountry" role="Seller" index="1" property="ORGCOUNTRY" required="false">
+			<description xml:lang="en">
+				<paragraph>
+					<text>Organization Country of the </text>
+					<bold>
+						<text>Seller</text>
+					</bold>
+					<text>.</text>
+				</paragraph>
+			</description>
+		</roleParameter>
+	</parameters>
+	<humanReadableText xml:lang="en">
+		<section>
+			<header>
+				<text>Sell eDaler® to cancel Neuro-Credits™</text>
+			</header>
+			<body>
+				<paragraph>
+					<text>The </text>
+					<bold>
+						<text>Seller</text>
+					</bold>
+					<text> hereby agrees to sell </text>
+					<italic>
+						<text>eDaler</text>
+					</italic>
+					<text>® to the </text>
+					<bold>
+						<text>Trust Provider</text>
+					</bold>
+					<text> to cancel previously bought </text>
+					<italic>
+						<text>Neuro-Credits</text>
+					</italic>
+					<text>™ to the amount of </text>
+					<bold>
+						<parameter name="Amount" />
+						<text> </text>
+						<parameter name="Currency" />
+					</bold>
+					<text>. For the sale to be valid, the amount must match an existing pending invoice sent to the </text>
+					<bold>
+						<text>Seller</text>
+					</bold>
+					<text>.</text>
+				</paragraph>
+				<section>
+					<header>
+						<text>Approval Process</text>
+					</header>
+					<body>
+						<paragraph>
+							<text>Once the </text>
+							<bold>
+								<text>Seller</text>
+							</bold>
+							<text> has signed the contract, the </text>
+							<bold>
+								<text>Trust Provider</text>
+							</bold>
+							<text> will review the request. If details in the contract are in order, the </text>
+							<bold>
+								<text>Trust Provider</text>
+							</bold>
+							<text> will also sign the contract, and send it to the </text>
+							<italic>
+								<text>Neuro-Credits</text>
+							</italic>
+							<text>™ service for processing. This service checks if the contract matches any pending invoices sent to the </text>
+							<bold>
+								<text>Seller</text>
+							</bold>
+							<text>. If everything is OK, the sale of </text>
+							<italic>
+								<text>eDaler</text>
+							</italic>
+							<text>® will be approved, and the corresponding </text>
+							<italic>
+								<text>Neuro-Credits</text>
+							</italic>
+							<text>™ with corresponding invoice cancelled. If not OK, the contract will be set to a </text>
+							<italic>
+								<text>Failed</text>
+							</italic>
+							<text> state, and a message will be sent to the </text>
+							<bold>
+								<text>Seller</text>
+							</bold>
+							<text> accordingly.</text>
+						</paragraph>
+					</body>
+				</section>
+				<section>
+					<header>
+						<text>Currency Conversion</text>
+					</header>
+					<body>
+						<paragraph>
+							<text>In case the </text>
+							<bold>
+								<text>Seller</text>
+							</bold>
+							<text> sells </text>
+							<italic>
+								<text>eDaler</text>
+							</italic>
+							<text>® in a currency that is not the default currency of the </text>
+							<bold>
+								<text>Trust Provider</text>
+							</bold>
+							<text>, a </text>
+							<italic>
+								<text>Currency Conversion</text>
+							</italic>
+							<text> service, selected by the </text>
+							<bold>
+								<text>Trust Provider</text>
+							</bold>
+							<text>, will be used to convert the requested amount to the currency used by the </text>
+							<bold>
+								<text>Trust Provider</text>
+							</bold>
+							<text>. This currency conversion may incur additional transaction and service fees, which will be deducted from the wallet as well.</text>
+						</paragraph>
+					</body>
+				</section>
+				<section>
+					<header>
+						<text>Invoice information</text>
+					</header>
+					<body>
+						<paragraph>
+							<text>Following is a summary of the invoice data to match for the sale of</text>
+							<italic>
+								<text>eDaler</text>
+							</italic>
+							<text>®.</text>
+						</paragraph>
+						<table>
+							<row>
+								<cell colSpan="2" header="true" alignment="Center">
+									<text>Agreed upon credit details</text>
+								</cell>
+							</row>
+							<row>
+								<cell colSpan="1" header="false" alignment="Left">
+									<text>Amount:</text>
+								</cell>
+								<cell colSpan="1" header="false" alignment="Right">
+									<parameter name="Amount" />
+									<text> </text>
+									<parameter name="Currency" />
+								</cell>
+							</row>
+						</table>
+						<table>
+							<row>
+								<cell colSpan="2" header="true" alignment="Center">
+									<text>Personal details</text>
+								</cell>
+							</row>
+							<row>
+								<cell colSpan="1" header="false" alignment="Left">
+									<text>Name:</text>
+								</cell>
+								<cell colSpan="1" header="false" alignment="Left">
+									<parameter name="SellerName" />
+								</cell>
+							</row>
+							<row>
+								<cell colSpan="1" header="false" alignment="Left">
+									<text>Personal Number:</text>
+								</cell>
+								<cell colSpan="1" header="false" alignment="Left">
+									<parameter name="SellerPNr" />
+								</cell>
+							</row>
+							<row>
+								<cell colSpan="1" header="false" alignment="Left">
+									<text>Address:</text>
+								</cell>
+								<cell colSpan="1" header="false" alignment="Left">
+									<parameter name="SellerAddress" />
+								</cell>
+							</row>
+							<row>
+								<cell colSpan="1" header="false" alignment="Left">
+									<text>Postal Code:</text>
+								</cell>
+								<cell colSpan="1" header="false" alignment="Left">
+									<parameter name="SellerZip" />
+								</cell>
+							</row>
+							<row>
+								<cell colSpan="1" header="false" alignment="Left">
+									<text>City:</text>
+								</cell>
+								<cell colSpan="1" header="false" alignment="Left">
+									<parameter name="SellerCity" />
+								</cell>
+							</row>
+							<row>
+								<cell colSpan="1" header="false" alignment="Left">
+									<text>Country:</text>
+								</cell>
+								<cell colSpan="1" header="false" alignment="Left">
+									<parameter name="SellerCountry" />
+								</cell>
+							</row>
+						</table>
+						<table>
+							<row>
+								<cell colSpan="2" header="true" alignment="Center">
+									<text>Organization details</text>
+								</cell>
+							</row>
+							<row>
+								<cell colSpan="1" header="false" alignment="Left">
+									<text>Organization Name:</text>
+								</cell>
+								<cell colSpan="1" header="false" alignment="Left">
+									<parameter name="SellerOrgName" />
+								</cell>
+							</row>
+							<row>
+								<cell colSpan="1" header="false" alignment="Left">
+									<text>Organization Number:</text>
+								</cell>
+								<cell colSpan="1" header="false" alignment="Left">
+									<parameter name="SellerOrgNr" />
+								</cell>
+							</row>
+							<row>
+								<cell colSpan="1" header="false" alignment="Left">
+									<text>Address:</text>
+								</cell>
+								<cell colSpan="1" header="false" alignment="Left">
+									<parameter name="SellerOrgAddress" />
+								</cell>
+							</row>
+							<row>
+								<cell colSpan="1" header="false" alignment="Left">
+									<text>Postal Code:</text>
+								</cell>
+								<cell colSpan="1" header="false" alignment="Left">
+									<parameter name="SellerOrgZip" />
+								</cell>
+							</row>
+							<row>
+								<cell colSpan="1" header="false" alignment="Left">
+									<text>City:</text>
+								</cell>
+								<cell colSpan="1" header="false" alignment="Left">
+									<parameter name="SellerOrgCity" />
+								</cell>
+							</row>
+							<row>
+								<cell colSpan="1" header="false" alignment="Left">
+									<text>Country:</text>
+								</cell>
+								<cell colSpan="1" header="false" alignment="Left">
+									<parameter name="SellerOrgCountry" />
+								</cell>
+							</row>
+						</table>
+					</body>
+				</section>
+			</body>
+		</section>
+	</humanReadableText>
+</contract>

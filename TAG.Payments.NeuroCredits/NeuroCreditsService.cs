@@ -16,7 +16,8 @@ namespace TAG.Payments.NeuroCredits
 	/// </summary>
 	public class NeuroCreditsService : IBuyEDalerService
 	{
-		private const string buyEDalerTemplateId = "2cc2ca5f-7a90-4839-8c1e-cdd642945b59@legal.lab.tagroot.io";
+		private const string buyEDalerTemplateId = "2cc2dc30-7a90-4ade-8c1e-cdd642e60077@legal.lab.tagroot.io";
+		private const string sellEDalerTemplateId = "2cc2dc49-7a90-4ae5-8c1e-cdd642aa520d@legal.lab.tagroot.io";
 
 		private readonly NeuroCreditsServiceProvider provider;
 
