@@ -155,13 +155,16 @@ namespace TAG.Payments.NeuroCredits
 		/// <param name="PersonalNumber">Personal number of account.</param>
 		/// <param name="Currency">Currency</param>
 		/// <returns>Amount authorized, using the default currency of the broker.</returns>
-		public static async Task<double> IsPersonAuthorized(string Jid, string PersonalNumber, string Currency)
+		public async Task<double> IsPersonAuthorized(string Jid, string PersonalNumber, string Currency)
 		{
 			if (string.IsNullOrEmpty(Jid) || string.IsNullOrEmpty(PersonalNumber))
 				return 0;
 
 			string Domain = XmppClient.GetDomain(Jid);
 			if (!Gateway.IsDomain(Domain, true))
+				return 0;
+
+			if (!this.SupportsCurrency(Currency))
 				return 0;
 
 			string Account = XmppClient.GetAccount(Jid);
@@ -214,13 +217,16 @@ namespace TAG.Payments.NeuroCredits
 		/// <param name="PersonalNumber">Personal number of person representing the organization.</param>
 		/// <param name="Currency">Currency</param>
 		/// <returns>Amount authorized, using the default currency of the broker.</returns>
-		public static async Task<double> IsOrganizationAuthorized(string Jid, string OrganizationNumber, string PersonalNumber, string Currency)
+		public async Task<double> IsOrganizationAuthorized(string Jid, string OrganizationNumber, string PersonalNumber, string Currency)
 		{
 			if (string.IsNullOrEmpty(Jid) || string.IsNullOrEmpty(OrganizationNumber) || string.IsNullOrEmpty(PersonalNumber))
 				return 0;
 
 			string Domain = XmppClient.GetDomain(Jid);
 			if (!Gateway.IsDomain(Domain, true))
+				return 0;
+
+			if (!this.SupportsCurrency(Currency))
 				return 0;
 
 			string Account = XmppClient.GetAccount(Jid);
@@ -252,6 +258,25 @@ namespace TAG.Payments.NeuroCredits
 			long Count = await RuntimeCounters.GetCount(OrganizationKey(OrganizationNumber, PersonalNumber));
 
 			return 0.0001M * Count;
+		}
+
+		/// <summary>
+		/// Checks if a currency is supported.
+		/// </summary>
+		/// <param name="Currency">Currency</param>
+		/// <returns>If currency is supported.</returns>
+		public bool SupportsCurrency(CaseInsensitiveString Currency)
+		{
+			if (!this.IsWellDefined)
+				return false;
+
+			foreach (string s in this.Currencies)
+			{
+				if (s.Trim().ToLower() == Currency.LowerCase)
+					return true;
+			}
+
+			return false;
 		}
 	}
 }

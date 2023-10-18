@@ -10,7 +10,7 @@ namespace TAG.Payments.NeuroCredits
 	/// <summary>
 	/// Serivce provider for Neuro-Credits™
 	/// </summary>
-	public class NeuroCreditsServiceProvider : IConfigurableModule, IBuyEDalerServiceProvider
+	public class NeuroCreditsServiceProvider : IConfigurableModule, IBuyEDalerServiceProvider, ISellEDalerServiceProvider
 	{
 		/// <summary>
 		/// Serivce provider for Neuro-Credits™
@@ -130,6 +130,53 @@ namespace TAG.Payments.NeuroCredits
 
 			if (!(Types.Instantiate(T, this) is IBuyEDalerService Service))
 				return Task.FromResult<IBuyEDalerService>(null);
+
+			return Task.FromResult(Service);
+		}
+
+		#endregion
+
+		#region ISellEDalerServiceProvider
+
+		/// <summary>
+		/// Gets available payment services.
+		/// </summary>
+		/// <param name="Currency">Currency to use.</param>
+		/// <param name="Country">Country where service is to be used.</param>
+		/// <returns>Available payment services.</returns>
+		public async Task<ISellEDalerService[]> GetServicesForSellingEDaler(CaseInsensitiveString Currency, CaseInsensitiveString Country)
+		{
+			ServiceConfiguration Config = await ServiceConfiguration.GetCurrent();
+
+			if (Config.IsWellDefined)
+			{
+				return new ISellEDalerService[]
+				{
+					new NeuroCreditsService(this)
+				};
+			}
+			else
+				return new ISellEDalerService[0];
+		}
+
+		/// <summary>
+		/// Gets a payment service.
+		/// </summary>
+		/// <param name="ServiceId">Service ID</param>
+		/// <param name="Currency">Currency to use.</param>
+		/// <param name="Country">Country where service is to be used.</param>
+		/// <returns>Service, if found, null otherwise.</returns>
+		public Task<ISellEDalerService> GetServiceForSellingEDaler(string ServiceId, CaseInsensitiveString Currency, CaseInsensitiveString Country)
+		{
+			Type T = Types.GetType(ServiceId);
+			if (T is null)
+				return Task.FromResult<ISellEDalerService>(null);
+
+			if (T.Assembly != typeof(NeuroCreditsServiceProvider).Assembly)
+				return Task.FromResult<ISellEDalerService>(null);
+
+			if (!(Types.Instantiate(T, this) is ISellEDalerService Service))
+				return Task.FromResult<ISellEDalerService>(null);
 
 			return Task.FromResult(Service);
 		}

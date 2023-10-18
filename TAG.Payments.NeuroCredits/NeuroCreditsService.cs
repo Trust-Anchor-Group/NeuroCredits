@@ -14,7 +14,7 @@ namespace TAG.Payments.NeuroCredits
 	/// <summary>
 	/// Serivce for Neuro-Credits™
 	/// </summary>
-	public class NeuroCreditsService : IBuyEDalerService
+	public class NeuroCreditsService : IBuyEDalerService, ISellEDalerService
 	{
 		private const string buyEDalerTemplateId = "2cc2dc30-7a90-4ade-8c1e-cdd642e60077@legal.lab.tagroot.io";
 		private const string sellEDalerTemplateId = "2cc2dc49-7a90-4ae5-8c1e-cdd642aa520d@legal.lab.tagroot.io";
@@ -73,17 +73,13 @@ namespace TAG.Payments.NeuroCredits
 		/// <returns>Support</returns>
 		public Grade Supports(CaseInsensitiveString Currency)
 		{
-			ServiceConfiguration Configuration = ServiceConfiguration.GetCurrent().Result;
-			if (!Configuration.IsWellDefined)
-				return Grade.NotAtAll;
+			return SupportsCurrency(Currency).Result ? Grade.Ok : Grade.NotAtAll;
+		}
 
-			foreach(string s in Configuration.Currencies)
-			{
-				if (s.ToLower() == Currency.LowerCase)
-					return Grade.Ok;
-			}
-
-			return Grade.NotAtAll;
+		private static async Task<bool> SupportsCurrency(CaseInsensitiveString Currency)
+		{
+			ServiceConfiguration Configuration = await ServiceConfiguration.GetCurrent();
+			return Configuration.SupportsCurrency(Currency);
 		}
 
 		#endregion
@@ -101,7 +97,7 @@ namespace TAG.Payments.NeuroCredits
 		public IBuyEDalerServiceProvider BuyEDalerServiceProvider => this.provider;
 
 		/// <summary>
-		/// If the service provider can be used to process a request to buy eDaler
+		/// If the service provider can be used to process a request to buy eDaler®
 		/// of a certain amount, for a given account.
 		/// </summary>
 		/// <param name="AccountName">Account Name</param>
@@ -114,34 +110,39 @@ namespace TAG.Payments.NeuroCredits
 
 			// ID:=select generic top 1 * from "LegalIdentities" where Account=AccountName and State="Approved" order by Created desc;
 
-			GenericObject ID = null;
-
-			foreach (GenericObject Obj in await Database.Find<GenericObject>("LegalIdentities", 0, 1, new FilterAnd(
-				new FilterFieldEqualTo("Account", AccountName),
-				new FilterFieldEqualTo("State", "Approved")), "-Created"))
-			{
-				ID = Obj;
-				break;
-			}
-
+			GenericObject ID = await GetLegalID(AccountName);
 			if (ID is null)
 				return false;
 
 			PersonalInformation PI = new PersonalInformation(ID);
 			string WalletCurrency = await ServiceConfiguration.GetCurrencyOfAccount(AccountName);
 
-			return await MaxAmountAuthorized(PI, Configuration, WalletCurrency) > 0;
+			return await MaxCreditAmountAuthorized(PI, Configuration, WalletCurrency) > 0;
+		}
+
+		private static async Task<GenericObject> GetLegalID(CaseInsensitiveString AccountName)
+		{
+			// ID:=select generic top 1 * from "LegalIdentities" where Account=AccountName and State="Approved" order by Created desc;
+
+			foreach (GenericObject Obj in await Database.Find<GenericObject>("LegalIdentities", 0, 1, new FilterAnd(
+				new FilterFieldEqualTo("Account", AccountName),
+				new FilterFieldEqualTo("State", "Approved")), "-Created"))
+			{
+				return Obj;
+			}
+
+			return null;
 		}
 
 		/// <summary>
-		/// If the service provider can be used to process a request to buy eDaler
+		/// If the service provider can be used to process a request to buy eDaler®
 		/// of a certain amount, for a given account.
 		/// </summary>
 		/// <param name="PI">Personal Information about account.</param>
 		/// <param name="Configuration">Current configuration.</param>
 		/// <param name="Currency">Currency</param>
 		/// <returns>Amount of Neuro-Credits™ authorized.</returns>
-		internal static async Task<double> MaxAmountAuthorized(PersonalInformation PI, ServiceConfiguration Configuration, string Currency)
+		internal static async Task<double> MaxCreditAmountAuthorized(PersonalInformation PI, ServiceConfiguration Configuration, string Currency)
 		{ 
 			double MaxAmount;
 
@@ -150,7 +151,7 @@ namespace TAG.Payments.NeuroCredits
 
 			if (Configuration.AllowPrivatePersons)
 			{
-				MaxAmount = await ServiceConfiguration.IsPersonAuthorized(PI.Jid, PI.PersonalNumber, Currency);
+				MaxAmount = await Configuration.IsPersonAuthorized(PI.Jid, PI.PersonalNumber, Currency);
 				if (MaxAmount > 0)
 					return MaxAmount;
 			}
@@ -160,7 +161,7 @@ namespace TAG.Payments.NeuroCredits
 
 			if (Configuration.AllowOrganizations)
 			{
-				MaxAmount = await ServiceConfiguration.IsOrganizationAuthorized(PI.Jid, PI.OrganizationNumber, PI.PersonalNumber, Currency);
+				MaxAmount = await Configuration.IsOrganizationAuthorized(PI.Jid, PI.OrganizationNumber, PI.PersonalNumber, Currency);
 				if (MaxAmount > 0)
 					return MaxAmount;
 			}
@@ -169,7 +170,7 @@ namespace TAG.Payments.NeuroCredits
 		}
 
 		/// <summary>
-		/// Processes payment for buying eDaler.
+		/// Processes payment for buying eDaler®.
 		/// </summary>
 		/// <param name="ContractParameters">Parameters available in the
 		/// contract authorizing the payment.</param>
@@ -196,7 +197,7 @@ namespace TAG.Payments.NeuroCredits
 				return new PaymentResult("Neuro-Credits™ service not configured properly.");
 
 			PersonalInformation PI = new PersonalInformation(IdentityProperties);
-			double MaxAmount = await MaxAmountAuthorized(PI, Configuration, Currency);
+			double MaxAmount = await MaxCreditAmountAuthorized(PI, Configuration, Currency);
 
 			if (MaxAmount <= 0)
 				return new PaymentResult("Not authorized to buy Neuro-Credits™. Contact your operator to receive authorization to buy Neuro-Credits™. If there are outstanding payments, you might need to cleared those first.");
@@ -210,7 +211,7 @@ namespace TAG.Payments.NeuroCredits
 		}
 
 		/// <summary>
-		/// Gets available payment options for buying eDaler.
+		/// Gets available payment options for buying eDaler®.
 		/// </summary>
 		/// <param name="IdentityProperties">Properties engraved into the legal identity that will performm the request.</param>
 		/// <param name="SuccessUrl">Optional Success URL the service provider can open on the client from a client web page, if getting options has succeeded.</param>
@@ -236,7 +237,7 @@ namespace TAG.Payments.NeuroCredits
 				return new IDictionary<CaseInsensitiveString, object>[0];
 
 			string WalletCurrency = await ServiceConfiguration.GetCurrencyOfAccount(AccountName);
-			double MaxAmount = await MaxAmountAuthorized(PI, Configuration, WalletCurrency);
+			double MaxAmount = await MaxCreditAmountAuthorized(PI, Configuration, WalletCurrency);
 
 			return new IDictionary<CaseInsensitiveString, object>[]
 			{
@@ -248,5 +249,41 @@ namespace TAG.Payments.NeuroCredits
 		}
 
 		#endregion
+
+		#region ISellEDalerService
+
+		/// <summary>
+		/// Contract ID of Template, for selling e-Daler
+		/// </summary>
+		public string SellEDalerTemplateContractId => sellEDalerTemplateId;
+
+		/// <summary>
+		/// Reference to the service provider.
+		/// </summary>
+		public ISellEDalerServiceProvider SellEDalerServiceProvider => this.provider;
+
+		/// <summary>
+		/// If the service provider can be used to process a request to buy eDaler®
+		/// of a certain amount, for a given account.
+		/// </summary>
+		/// <param name="AccountName">Account Name</param>
+		/// <returns>If service provider can be used.</returns>
+		public async Task<bool> CanSellEDaler(CaseInsensitiveString AccountName)
+		{
+			ServiceConfiguration Configuration = await ServiceConfiguration.GetCurrent();
+			if (!Configuration.IsWellDefined)
+				return false;
+
+			// ID:=select generic top 1 * from "LegalIdentities" where Account=AccountName and State="Approved" order by Created desc;
+
+			GenericObject ID = await GetLegalID(AccountName);
+			if (ID is null)
+				return false;
+
+
+		}
+
+		#endregion
+
 	}
 }
