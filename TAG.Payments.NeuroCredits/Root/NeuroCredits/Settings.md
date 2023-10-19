@@ -23,6 +23,8 @@ if exists(Posted) then
 	SetSetting("TAG.Payments.NeuroCredits.Organizations",Boolean(Posted.AllowOrganizations ??? false));
 	SetSetting("TAG.Payments.NeuroCredits.DefaultPersonalLimit",Num(Posted.DefaultPersonalLimit));
 	SetSetting("TAG.Payments.NeuroCredits.DefaultOrganizationalLimit",Num(Posted.DefaultOrganizationalLimit));
+	SetSetting("TAG.Payments.NeuroCredits.DueDays",Num(Posted.DueDays));
+	SetSetting("TAG.Payments.NeuroCredits.DueInterest",Num(Posted.DueInterest));
 
 	TAG.Payments.NeuroCredits.ServiceConfiguration.InvalidateCurrent();
 
@@ -31,23 +33,33 @@ if exists(Posted) then
 }}
 
 <p>
-<label for="Countries">Enable service for these **Countries**: ([ISO 3166-1 2-letter country codes](https://en.wikipedia.org/wiki/ISO_3166-1), separated by commas):</label>  
+<label for="Countries">Enable service for these **Countries**: ([ISO 3166-1 2-letter country codes](https://en.wikipedia.org/wiki/ISO_3166-1), separated by commas)</label>  
 <input id="Countries" name="Countries" type="text" value="{{GetSetting('TAG.Payments.NeuroCredits.Countries','')}}"/>
 </p>
 
 <p>
-<label for="Currencies">Enable service for these **Currencies**: ([IBAN 3-letter currency codes](https://www.iban.com/currency-codes), separated by commas):</label>  
+<label for="Currencies">Enable service for these **Currencies**: ([IBAN 3-letter currency codes](https://www.iban.com/currency-codes), separated by commas)</label>  
 <input id="Currencies" name="Currencies" type="text" value="{{GetSetting('TAG.Payments.NeuroCredits.Currencies','')}}"/>
 </p>
 
 <p>
-<label for="DefaultPersonalLimit">Default **personal** credit limit: ({{DefaultCurrency:=GetSetting('DefaultCurrency','')}}):</label>  
+<label for="DefaultPersonalLimit">Default **personal** credit limit: ({{DefaultCurrency:=GetSetting('DefaultCurrency','')}})</label>  
 <input id="DefaultPersonalLimit" name="DefaultPersonalLimit" type="number" min="0" value="{{GetSetting('TAG.Payments.NeuroCredits.DefaultPersonalLimit',0)}}" style="max-width:20em"/>
 </p>
 
 <p>
-<label for="DefaultOrganizationalLimit">Default **organizational** credit limit: ({{DefaultCurrency}}):</label>  
+<label for="DefaultOrganizationalLimit">Default **organizational** credit limit: ({{DefaultCurrency}})</label>  
 <input id="DefaultOrganizationalLimit" name="DefaultOrganizationalLimit" type="number" min="0" value="{{GetSetting('TAG.Payments.NeuroCredits.DefaultOrganizationalLimit',0)}}" style="max-width:20em"/>
+</p>
+
+<p>
+<label for="DueDays">Number of **days** credit:</label>  
+<input id="DueDays" name="DueDays" type="number" min="1" value="{{GetSetting('TAG.Payments.NeuroCredits.DueDays',30)}}" style="max-width:20em"/>
+</p>
+
+<p>
+<label for="DueInterest">Due **interest**: (\%)</label>  
+<input id="DueInterest" name="DueInterest" type="number" min="0" value="{{GetSetting('TAG.Payments.NeuroCredits.DueInterest',10)}}" style="max-width:20em"/>
 </p>
 
 Who can use the service:

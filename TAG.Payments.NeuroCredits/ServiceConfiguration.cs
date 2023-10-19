@@ -78,6 +78,24 @@ namespace TAG.Payments.NeuroCredits
 		}
 
 		/// <summary>
+		/// Invoices must be paid within this number of days.
+		/// </summary>
+		public int DueDays
+		{
+			get;
+			private set;
+		}
+
+		/// <summary>
+		/// After the due date, this interest rate will be added to the debt.
+		/// </summary>
+		public double DueInterest
+		{
+			get;
+			private set;
+		}
+
+		/// <summary>
 		/// If configuration is well-defined.
 		/// </summary>
 		public bool IsWellDefined
@@ -107,6 +125,8 @@ namespace TAG.Payments.NeuroCredits
 			Result.AllowOrganizations = await RuntimeSettings.GetAsync(Prefix + ".Organizations", false);
 			Result.DefaultMaxPersonalLimit = await RuntimeSettings.GetAsync(Prefix + ".DefaultPersonalLimit", 0d);
 			Result.DefaultMaxOrganizationalLimit = await RuntimeSettings.GetAsync(Prefix + ".DefaultOrganizationalLimit", 0d);
+			Result.DueDays = (int)await RuntimeSettings.GetAsync(Prefix + ".DueDays", 30d);
+			Result.DueInterest = await RuntimeSettings.GetAsync(Prefix + ".DueInterest", 10d);
 
 			return Result;
 		}
@@ -261,7 +281,7 @@ namespace TAG.Payments.NeuroCredits
 				return 0;
 
 			string Domain = XmppClient.GetDomain(Jid);
-			if (!Gateway.IsDomain(Domain, true))
+			if (!string.IsNullOrEmpty(Domain) && !Gateway.IsDomain(Domain, true))
 				return 0;
 
 			if (!this.SupportsCurrency(Currency))

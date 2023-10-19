@@ -166,7 +166,7 @@ namespace TAG.Payments.NeuroCredits
 
 			if (Configuration.AllowOrganizations)
 			{
-				MaxAmount = await Configuration.IsOrganizationAuthorized(PI.Jid, PI.OrganizationNumber, PI.OrganizationCountry, 
+				MaxAmount = await Configuration.IsOrganizationAuthorized(PI.Jid, PI.OrganizationNumber, PI.OrganizationCountry,
 					PI.PersonalNumber, PI.Country, Currency);
 
 				if (MaxAmount > 0)
@@ -228,6 +228,7 @@ namespace TAG.Payments.NeuroCredits
 				Amount = Amount,
 				Currency = Currency,
 				DueDate = DueDate,
+				DueInterest = Configuration.DueInterest,
 				Created = DateTime.UtcNow,
 				Paid = DateTime.MinValue,
 				NeuroCreditsContractId = ContractId,
@@ -289,7 +290,7 @@ namespace TAG.Payments.NeuroCredits
 			PersonalInformation PI = new PersonalInformation(IdentityProperties);
 			string AccountName = XmppClient.GetAccount(PI.Jid);
 			string Domain = XmppClient.GetDomain(PI.Jid);
-			if (!Gateway.IsDomain(Domain, true))
+			if (!string.IsNullOrEmpty(Domain) && !Gateway.IsDomain(Domain, true))
 				return new IDictionary<CaseInsensitiveString, object>[0];
 
 			string WalletCurrency = await ServiceConfiguration.GetCurrencyOfAccount(AccountName);
@@ -299,7 +300,11 @@ namespace TAG.Payments.NeuroCredits
 			{
 				new Dictionary<CaseInsensitiveString, object>()
 				{
-					{ "Max(Amount)", MaxAmount }
+					{ "Max(Amount)", MaxAmount },
+					{ "Min(DueDays)", Configuration.DueDays },
+					{ "Max(DueDays)", Configuration.DueDays },
+					{ "Min(DueInterest)", Configuration.DueInterest },
+					{ "Max(DueInterest)", Configuration.DueInterest }
 				}
 			};
 		}
@@ -375,7 +380,7 @@ namespace TAG.Payments.NeuroCredits
 			Invoice MatchingInvoice = await Database.FindFirstIgnoreRest<Invoice>(new FilterAnd(
 				new FilterFieldEqualTo("Account", AccountName),
 				new FilterFieldEqualTo("IsPaid", false),
-				new FilterFieldEqualTo("Amount", Amount),
+				new FilterFieldEqualTo("Amount", Amount), // TODO: Take due into account.
 				new FilterFieldEqualTo("Currency", Currency)));
 
 			if (!(MatchingInvoice is null))
@@ -386,7 +391,7 @@ namespace TAG.Payments.NeuroCredits
 				PotentialInvoices.AddRange(await Database.Find<Invoice>(new FilterAnd(
 					new FilterFieldEqualTo("Account", AccountName),
 					new FilterFieldEqualTo("IsPaid", false),
-					new FilterFieldLesserThan("Amount", Amount),
+					new FilterFieldLesserThan("Amount", Amount), // TODO: Take due into account.
 					new FilterFieldEqualTo("Currency", Currency))));
 
 				int NrInvoices = PotentialInvoices.Count;
@@ -407,7 +412,7 @@ namespace TAG.Payments.NeuroCredits
 					while (j != 0)
 					{
 						if ((j & 1) != 0)
-							Sum += PotentialInvoices[k].Amount;
+							Sum += PotentialInvoices[k].Amount; // TODO: Take due into account.
 
 						k++;
 						j >>= 1;
@@ -454,7 +459,7 @@ namespace TAG.Payments.NeuroCredits
 						else
 							sb.Append(", ");
 
-						sb.Append(CommonTypes.Encode(InvoicePending.Amount));
+						sb.Append(CommonTypes.Encode(InvoicePending.Amount)); // TODO: Take due into account.
 						sb.Append(' ');
 						sb.Append(InvoicePending.Currency.Value);
 					}
@@ -511,19 +516,28 @@ namespace TAG.Payments.NeuroCredits
 				return new IDictionary<CaseInsensitiveString, object>[0];
 
 			PersonalInformation PI = new PersonalInformation(IdentityProperties);
+			string AccountName = XmppClient.GetAccount(PI.Jid);
 			string Domain = XmppClient.GetDomain(PI.Jid);
-			if (!Gateway.IsDomain(Domain, true))
+			if (!string.IsNullOrEmpty(Domain) && !Gateway.IsDomain(Domain, true))
 				return new IDictionary<CaseInsensitiveString, object>[0];
 
 			decimal MaxAmount = await ServiceConfiguration.CurrentPersonalDebt(PI.Jid, PI.PersonalNumber, PI.Country);
+			string Currency = await ServiceConfiguration.GetCurrencyOfAccount(AccountName);
 
-			return new IDictionary<CaseInsensitiveString, object>[]
+			Invoice MatchingInvoice = await Database.FindFirstIgnoreRest<Invoice>(new FilterAnd(
+				new FilterFieldEqualTo("Account", AccountName),
+				new FilterFieldEqualTo("IsPaid", false),
+				new FilterFieldEqualTo("Currency", Currency)));
+
+			Dictionary<CaseInsensitiveString, object> Options = new Dictionary<CaseInsensitiveString, object>()
 			{
-				new Dictionary<CaseInsensitiveString, object>()
-				{
-					{ "Max(Amount)", MaxAmount }
-				}
+				{ "Max(Amount)", MaxAmount }
 			};
+
+			if (!(MatchingInvoice is null))
+				Options["Amount"] = MatchingInvoice.Amount; // TODO: Take due into account.
+
+			return new IDictionary<CaseInsensitiveString, object>[] { Options };
 		}
 
 		#endregion

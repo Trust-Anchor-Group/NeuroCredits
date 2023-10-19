@@ -57,6 +57,11 @@ namespace TAG.Payments.NeuroCredits.Data
 		public DateTime DueDate { get; set; }
 
 		/// <summary>
+		/// Due interest
+		/// </summary>
+		public double DueInterest { get; set; }
+
+		/// <summary>
 		/// When invoice was created
 		/// </summary>
 		public DateTime Created { get; set; }
@@ -212,9 +217,10 @@ namespace TAG.Payments.NeuroCredits.Data
 				new KeyValuePair<string, object>("InvoiceNumber", this.InvoiceNumber),
 				new KeyValuePair<string, object>("Account", this.Account),
 				new KeyValuePair<string, object>("IsPaid", this.IsPaid),
-				new KeyValuePair<string, object>("Amount", this.Amount),
+				new KeyValuePair<string, object>("Amount", this.Amount), // TODO: Take due into account in separate tag.
 				new KeyValuePair<string, object>("Currency", this.Currency),
 				new KeyValuePair<string, object>("DueDate", this.DueDate),
+				new KeyValuePair<string, object>("DueInterest", this.DueInterest),
 				new KeyValuePair<string, object>("Created", this.Created)
 			};
 
