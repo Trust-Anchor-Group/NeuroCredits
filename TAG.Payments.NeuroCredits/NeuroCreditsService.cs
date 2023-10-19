@@ -2,11 +2,13 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using TAG.Payments.NeuroCredits.Data;
 using Waher.IoTGateway;
 using Waher.Networking.XMPP;
 using Waher.Persistence;
 using Waher.Persistence.Filters;
 using Waher.Persistence.Serialization;
+using Waher.Runtime.Counters;
 using Waher.Runtime.Inventory;
 
 namespace TAG.Payments.NeuroCredits
@@ -143,7 +145,7 @@ namespace TAG.Payments.NeuroCredits
 		/// <param name="Currency">Currency</param>
 		/// <returns>Amount of Neuro-Credits™ authorized.</returns>
 		internal static async Task<double> MaxCreditAmountAuthorized(PersonalInformation PI, ServiceConfiguration Configuration, string Currency)
-		{ 
+		{
 			double MaxAmount;
 
 			if (!PI.HasPersonalBillingInformation)
@@ -206,6 +208,53 @@ namespace TAG.Payments.NeuroCredits
 				return new PaymentResult("Amount exceeds maximum allowed amount.");
 
 			Amount = await ServiceConfiguration.IncrementPersonalDebt(Amount, PI.Jid, PI.PersonalNumber);
+
+			if (!ContractParameters.TryGetValue("DueDate", out object Obj) || !(Obj is DateTime DueDate))
+				DueDate = DateTime.Today.AddDays(30);
+
+			if (!ContractParameters.TryGetValue("ContractId", out Obj) || !(Obj is string ContractId))
+				ContractId = null;
+
+			Invoice Invoice = new Invoice()
+			{
+				InvoiceNumber = await RuntimeCounters.IncrementCounter(NeuroCreditsServiceProvider.ServiceId + ".NrInvoices"),
+				Account = XmppClient.GetAccount(PI.Jid),
+				IsPaid = false,
+				Amount = Amount,
+				Currency = Currency,
+				DueDate = DueDate,
+				Created = DateTime.UtcNow,
+				Paid = DateTime.MinValue,
+				NeuroCreditsContractId = ContractId,
+				CancellationContractId = null,
+				ExternalReference = null,
+				FirstName = PI.FirstName,
+				MiddleName = PI.MiddleName,
+				LastName = PI.LastName,
+				PersonalNumber = PI.PersonalNumber,
+				Address = PI.Address,
+				Address2 = PI.Address2,
+				Area = PI.Area,
+				City = PI.City,
+				PostalCode = PI.PostalCode,
+				Region = PI.Region,
+				Country = PI.Country,
+				Jid = PI.Jid,
+				PhoneNumber = PI.PhoneNumber,
+				OrganizationName = PI.OrganizationName,
+				Department = PI.Department,
+				Role = PI.Role,
+				OrganizationNumber = PI.OrganizationNumber,
+				OrganizationAddress = PI.OrganizationAddress,
+				OrganizationAddress2 = PI.OrganizationAddress2,
+				OrganizationArea = PI.OrganizationArea,
+				OrganizationCity = PI.OrganizationCity,
+				OrganizationPostalCode = PI.OrganizationPostalCode,
+				OrganizationRegion = PI.OrganizationRegion,
+				OrganizationCountry = PI.OrganizationCountry
+			};
+
+			await Database.Insert(Invoice);
 
 			return new PaymentResult(Amount, Currency);
 		}
