@@ -204,7 +204,7 @@ namespace TAG.Payments.NeuroCredits
 			string Account = XmppClient.GetAccount(Jid);
 			long CountDelta = (long)(Amount * 10000);
 
-			await RuntimeCounters.IncrementCounter(PersonalKey(Account,PersonalNumber), CountDelta);
+			await RuntimeCounters.IncrementCounter(PersonalKey(Account, PersonalNumber), CountDelta);
 
 			return 0.0001M * CountDelta;
 		}
