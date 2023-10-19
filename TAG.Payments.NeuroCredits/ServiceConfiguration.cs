@@ -209,6 +209,16 @@ namespace TAG.Payments.NeuroCredits
 			return 0.0001M * CountDelta;
 		}
 
+		internal static async Task<decimal> DecrementPersonalDebt(decimal Amount, string Jid, string PersonalNumber)
+		{
+			string Account = XmppClient.GetAccount(Jid);
+			long CountDelta = (long)(Amount * 10000);
+
+			await RuntimeCounters.DecrementCounter(PersonalKey(Account, PersonalNumber), CountDelta);
+
+			return 0.0001M * CountDelta;
+		}
+
 		/// <summary>
 		/// Checks if a person is authorized to buy Neuro-Credits™.
 		/// </summary>

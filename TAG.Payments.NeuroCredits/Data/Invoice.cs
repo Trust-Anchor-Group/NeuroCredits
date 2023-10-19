@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Waher.Persistence;
 using Waher.Persistence.Attributes;
 
@@ -11,8 +12,8 @@ namespace TAG.Payments.NeuroCredits.Data
 	[TypeName(TypeNameSerialization.None)]
 	[Index("InvoiceNumber")]
 	[Index("DueDate", "InvoiceNumber")]
-	[Index("Account", "Paid", "InvoiceNumber")]
-	[Index("Account", "Paid", "Amount")]
+	[Index("Account", "IsPaid", "InvoiceNumber")]
+	[Index("Account", "IsPaid", "Amount")]
 	public class Invoice
 	{
 		/// <summary>
@@ -199,5 +200,109 @@ namespace TAG.Payments.NeuroCredits.Data
 		/// Country of organization
 		/// </summary>
 		public string OrganizationCountry { get; set; }
+
+		/// <summary>
+		/// Gets invoice-related tags.
+		/// </summary>
+		/// <returns>Array of tags.</returns>
+		public KeyValuePair<string, object>[] GetTags()
+		{
+			List<KeyValuePair<string, object>> Result = new List<KeyValuePair<string, object>>
+			{
+				new KeyValuePair<string, object>("InvoiceNumber", this.InvoiceNumber),
+				new KeyValuePair<string, object>("Account", this.Account),
+				new KeyValuePair<string, object>("IsPaid", this.IsPaid),
+				new KeyValuePair<string, object>("Amount", this.Amount),
+				new KeyValuePair<string, object>("Currency", this.Currency),
+				new KeyValuePair<string, object>("DueDate", this.DueDate),
+				new KeyValuePair<string, object>("Created", this.Created)
+			};
+
+			if (this.Paid > DateTime.MinValue)
+					Result.Add(new KeyValuePair<string, object>("Paid", this.Paid)); 
+
+			if (!string.IsNullOrEmpty(this.NeuroCreditsContractId)) 
+				Result.Add(new KeyValuePair<string, object>("NeuroCreditsContractId", this.NeuroCreditsContractId));
+			
+			if (!string.IsNullOrEmpty(this.CancellationContractId)) 
+				Result.Add(new KeyValuePair<string, object>("CancellationContractId", this.CancellationContractId));
+			
+			if (!string.IsNullOrEmpty(this.ExternalReference)) 
+				Result.Add(new KeyValuePair<string, object>("ExternalReference", this.ExternalReference));
+			
+			if (!string.IsNullOrEmpty(this.FirstName)) 
+				Result.Add(new KeyValuePair<string, object>("FirstName", this.FirstName));
+			
+			if (!string.IsNullOrEmpty(this.MiddleName)) 
+				Result.Add(new KeyValuePair<string, object>("MiddleName", this.MiddleName));
+			
+			if (!string.IsNullOrEmpty(this.LastName)) 
+				Result.Add(new KeyValuePair<string, object>("LastName", this.LastName));
+			
+			if (!string.IsNullOrEmpty(this.PersonalNumber)) 
+				Result.Add(new KeyValuePair<string, object>("PersonalNumber", this.PersonalNumber));
+			
+			if (!string.IsNullOrEmpty(this.Address)) 
+				Result.Add(new KeyValuePair<string, object>("Address", this.Address));
+			
+			if (!string.IsNullOrEmpty(this.Address2)) 
+				Result.Add(new KeyValuePair<string, object>("Address2", this.Address2));
+			
+			if (!string.IsNullOrEmpty(this.Area)) 
+				Result.Add(new KeyValuePair<string, object>("Area", this.Area));
+			
+			if (!string.IsNullOrEmpty(this.City)) 
+				Result.Add(new KeyValuePair<string, object>("City", this.City));
+			
+			if (!string.IsNullOrEmpty(this.PostalCode)) 
+				Result.Add(new KeyValuePair<string, object>("PostalCode", this.PostalCode));
+			
+			if (!string.IsNullOrEmpty(this.Region)) 
+				Result.Add(new KeyValuePair<string, object>("Region", this.Region));
+			
+			if (!string.IsNullOrEmpty(this.Country)) 
+				Result.Add(new KeyValuePair<string, object>("Country", this.Country));
+			
+			if (!string.IsNullOrEmpty(this.Jid)) 
+				Result.Add(new KeyValuePair<string, object>("Jid", this.Jid));
+			
+			if (!string.IsNullOrEmpty(this.PhoneNumber)) 
+				Result.Add(new KeyValuePair<string, object>("PhoneNumber", this.PhoneNumber));
+			
+			if (!string.IsNullOrEmpty(this.OrganizationName)) 
+				Result.Add(new KeyValuePair<string, object>("OrganizationName", this.OrganizationName));
+			
+			if (!string.IsNullOrEmpty(this.Department)) 
+				Result.Add(new KeyValuePair<string, object>("Department", this.Department));
+			
+			if (!string.IsNullOrEmpty(this.Role)) 
+				Result.Add(new KeyValuePair<string, object>("Role", this.Role));
+			
+			if (!string.IsNullOrEmpty(this.OrganizationNumber)) 
+				Result.Add(new KeyValuePair<string, object>("OrganizationNumber", this.OrganizationNumber));
+			
+			if (!string.IsNullOrEmpty(this.OrganizationAddress)) 
+				Result.Add(new KeyValuePair<string, object>("OrganizationAddress", this.OrganizationAddress));
+			
+			if (!string.IsNullOrEmpty(this.OrganizationAddress2)) 
+				Result.Add(new KeyValuePair<string, object>("OrganizationAddress2", this.OrganizationAddress2));
+			
+			if (!string.IsNullOrEmpty(this.OrganizationArea)) 
+				Result.Add(new KeyValuePair<string, object>("OrganizationArea", this.OrganizationArea));
+			
+			if (!string.IsNullOrEmpty(this.OrganizationCity)) 
+				Result.Add(new KeyValuePair<string, object>("OrganizationCity", this.OrganizationCity));
+			
+			if (!string.IsNullOrEmpty(this.OrganizationPostalCode)) 
+				Result.Add(new KeyValuePair<string, object>("OrganizationPostalCode", this.OrganizationPostalCode));
+			
+			if (!string.IsNullOrEmpty(this.OrganizationRegion)) 
+				Result.Add(new KeyValuePair<string, object>("OrganizationRegion", this.OrganizationRegion));
+			
+			if (!string.IsNullOrEmpty(this.OrganizationCountry)) 
+				Result.Add(new KeyValuePair<string, object>("OrganizationCountry", this.OrganizationCountry));
+
+			return Result.ToArray();
+		}
 	}
 }
