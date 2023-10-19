@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Waher.Persistence;
 using Waher.Persistence.Serialization;
 
@@ -15,8 +16,21 @@ namespace TAG.Payments.NeuroCredits
 		/// <param name="Identity">Generic identity object.</param>
 		public PersonalInformation(GenericObject Identity)
 		{
-			foreach (KeyValuePair<string, object> Property in Identity)
-				this.Set(Property.Key, Property.Value?.ToString());
+			if (Identity.TryGetFieldValue("Properties", out object Obj) && Obj is Array A)
+			{
+				foreach (object Item in A)
+				{
+					if (Item is GenericObject Property &&
+						Property.TryGetFieldValue("Name", out Obj) && (Obj is CaseInsensitiveString Name) &&
+						Property.TryGetFieldValue("Value", out Obj))
+					{
+						if (Obj is CaseInsensitiveString Value)
+							this.Set(Name, Value);
+						else
+							this.Set(Name, Obj?.ToString());
+					}
+				}
+			}
 		}
 
 		/// <summary>
@@ -266,8 +280,7 @@ namespace TAG.Payments.NeuroCredits
 					!string.IsNullOrEmpty(this.City) &&
 					!string.IsNullOrEmpty(this.PostalCode) &&
 					!string.IsNullOrEmpty(this.Country) &&
-					!string.IsNullOrEmpty(this.Jid) &&
-					!string.IsNullOrEmpty(this.PhoneNumber);
+					!string.IsNullOrEmpty(this.Jid);
 			}
 		}
 
