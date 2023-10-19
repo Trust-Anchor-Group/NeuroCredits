@@ -19,8 +19,8 @@ if exists(Posted) then
 (
 	SetSetting("TAG.Payments.NeuroCredits.Countries",Posted.Countries);
 	SetSetting("TAG.Payments.NeuroCredits.Currencies",Posted.Currencies);
-	SetSetting("TAG.Payments.NeuroCredits.PrivatePersons",Boolean(Posted.AllowPrivatePersons));
-	SetSetting("TAG.Payments.NeuroCredits.Organizations",Boolean(Posted.AllowOrganizations));
+	SetSetting("TAG.Payments.NeuroCredits.PrivatePersons",Boolean(Posted.AllowPrivatePersons ??? false));
+	SetSetting("TAG.Payments.NeuroCredits.Organizations",Boolean(Posted.AllowOrganizations ??? false));
 	SetSetting("TAG.Payments.NeuroCredits.DefaultPersonalLimit",Num(Posted.DefaultPersonalLimit));
 	SetSetting("TAG.Payments.NeuroCredits.DefaultOrganizationalLimit",Num(Posted.DefaultOrganizationalLimit));
 
@@ -41,25 +41,25 @@ if exists(Posted) then
 </p>
 
 <p>
-<label for="DefaultPersonalLimit">Default personal credit limit: ({{DefaultCurrency:=GetSetting('DefaultCurrency','')}}):</label>  
-<input id="DefaultPersonalLimit" name="DefaultPersonalLimit" type="number" min="0" value="{{GetSetting('TAG.Payments.NeuroCredits.DefaultPersonalLimit',0)}}"/>
+<label for="DefaultPersonalLimit">Default **personal** credit limit: ({{DefaultCurrency:=GetSetting('DefaultCurrency','')}}):</label>  
+<input id="DefaultPersonalLimit" name="DefaultPersonalLimit" type="number" min="0" value="{{GetSetting('TAG.Payments.NeuroCredits.DefaultPersonalLimit',0)}}" style="max-width:20em"/>
 </p>
 
 <p>
-<label for="DefaultOrganizationalLimit">Default organizational credit limit: ({{DefaultCurrency}}):</label>  
-<input id="DefaultOrganizationalLimit" name="DefaultOrganizationalLimit" type="number" min="0" value="{{GetSetting('TAG.Payments.NeuroCredits.DefaultOrganizationalLimit',0)}}"/>
+<label for="DefaultOrganizationalLimit">Default **organizational** credit limit: ({{DefaultCurrency}}):</label>  
+<input id="DefaultOrganizationalLimit" name="DefaultOrganizationalLimit" type="number" min="0" value="{{GetSetting('TAG.Payments.NeuroCredits.DefaultOrganizationalLimit',0)}}" style="max-width:20em"/>
 </p>
 
 Who can use the service:
 
-<p><
-<input id="AllowPrivatePersons" name="AllowPrivatePersons" type="checkbox" "{{GetSetting('TAG.Payments.NeuroCredits.PrivatePersons',false)?"checked":""}}"/>
-<label for="AllowPrivatePersons">Allow private persons to buy Neuro-Credits™</label>
+<p>
+<input id="AllowPrivatePersons" name="AllowPrivatePersons" type="checkbox" {{GetSetting('TAG.Payments.NeuroCredits.PrivatePersons',false)?"checked":""}}/>
+<label for="AllowPrivatePersons">Allow **private persons** to buy Neuro-Credits™</label>
 </p>
 
 <p>
-<input id="AllowOrganizations" name="AllowOrganizations" type="checkbox" "{{GetSetting('TAG.Payments.NeuroCredits.Organizations',false)?"checked":""}}"/>
-<label for="AllowOrganizations">Allow organizations to buy Neuro-Credits™</label>
+<input id="AllowOrganizations" name="AllowOrganizations" type="checkbox" {{GetSetting('TAG.Payments.NeuroCredits.Organizations',false)?"checked":""}}/>
+<label for="AllowOrganizations">Allow **organizations** to buy Neuro-Credits™</label>
 </p>
 
 <button type="submit" class="posButton">Apply</button>
