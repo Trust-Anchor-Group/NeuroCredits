@@ -3,6 +3,7 @@
 	<Assembly fileName="TAG.Payments.NeuroCredits.dll"/>
 	<Folder name="Root">
 		<Folder name="NeuroCredits">
+			<Content fileName="Logo.png"/>
 			<Content fileName="Settings.js"/>
 			<Content fileName="Settings.md"/>
 		</Folder>

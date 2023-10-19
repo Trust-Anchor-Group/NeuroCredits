@@ -75,17 +75,17 @@ namespace TAG.Payments.NeuroCredits
 		/// <summary>
 		/// Icon URL
 		/// </summary>
-		public string IconUrl => string.Empty;
+		public string IconUrl => Gateway.GetUrl("/NeuroCredits/Logo.png");
 
 		/// <summary>
 		/// Width of icon, in pixels.
 		/// </summary>
-		public int IconWidth => 0;
+		public int IconWidth => 452;
 
 		/// <summary>
 		/// Height of icon, in pixels
 		/// </summary>
-		public int IconHeight => 0;
+		public int IconHeight => 94;
 
 		#endregion
 

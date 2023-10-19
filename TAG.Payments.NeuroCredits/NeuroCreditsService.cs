@@ -21,8 +21,8 @@ namespace TAG.Payments.NeuroCredits
 	/// </summary>
 	public class NeuroCreditsService : IBuyEDalerService, ISellEDalerService
 	{
-		private const string buyEDalerTemplateId = "2cc2dc30-7a90-4ade-8c1e-cdd642e60077@legal.lab.tagroot.io";
-		private const string sellEDalerTemplateId = "2cc2dc49-7a90-4ae5-8c1e-cdd642aa520d@legal.lab.tagroot.io";
+		private const string buyEDalerTemplateId = "2cc43dd6-4395-efdd-80d1-60ba31011f89@legal.";
+		private const string sellEDalerTemplateId = "2cc43bab-749d-bf32-a82f-6ff8340c0860@legal.";
 
 		private readonly NeuroCreditsServiceProvider provider;
 
@@ -45,7 +45,7 @@ namespace TAG.Payments.NeuroCredits
 		/// <summary>
 		/// ID of service.
 		/// </summary>
-		public static string ServiceId = typeof(NeuroCreditsService).Namespace;
+		public static string ServiceId = typeof(NeuroCreditsService).FullName;
 
 		/// <summary>
 		/// Name of service
@@ -55,17 +55,17 @@ namespace TAG.Payments.NeuroCredits
 		/// <summary>
 		/// Icon URL
 		/// </summary>
-		public string IconUrl => string.Empty;
+		public string IconUrl => Gateway.GetUrl("/NeuroCredits/Logo.png");
 
 		/// <summary>
 		/// Width of icon, in pixels.
 		/// </summary>
-		public int IconWidth => 0;
+		public int IconWidth => 452;
 
 		/// <summary>
 		/// Height of icon, in pixels
 		/// </summary>
-		public int IconHeight => 0;
+		public int IconHeight => 94;
 
 		#endregion
 

@@ -5,12 +5,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Root\NeuroCredits\Logo.png" />
     <None Remove="Root\NeuroCredits\Settings.js" />
     <None Remove="Root\NeuroCredits\Settings.md" />
     <None Remove="TAG.Payments.NeuroCredits.manifest" />
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="Root\NeuroCredits\Logo.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Root\NeuroCredits\Settings.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
