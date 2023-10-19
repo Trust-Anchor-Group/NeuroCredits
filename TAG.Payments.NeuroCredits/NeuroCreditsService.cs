@@ -156,7 +156,7 @@ namespace TAG.Payments.NeuroCredits
 
 			if (Configuration.AllowPrivatePersons)
 			{
-				MaxAmount = await Configuration.IsPersonAuthorized(PI.Jid, PI.PersonalNumber, Currency);
+				MaxAmount = await Configuration.IsPersonAuthorized(PI.Jid, PI.PersonalNumber, PI.Country, Currency);
 				if (MaxAmount > 0)
 					return MaxAmount;
 			}
@@ -166,7 +166,9 @@ namespace TAG.Payments.NeuroCredits
 
 			if (Configuration.AllowOrganizations)
 			{
-				MaxAmount = await Configuration.IsOrganizationAuthorized(PI.Jid, PI.OrganizationNumber, PI.PersonalNumber, Currency);
+				MaxAmount = await Configuration.IsOrganizationAuthorized(PI.Jid, PI.OrganizationNumber, PI.OrganizationCountry, 
+					PI.PersonalNumber, PI.Country, Currency);
+
 				if (MaxAmount > 0)
 					return MaxAmount;
 			}
@@ -210,7 +212,7 @@ namespace TAG.Payments.NeuroCredits
 			if ((double)Amount > MaxAmount)
 				return new PaymentResult("Amount exceeds maximum allowed amount.");
 
-			Amount = await ServiceConfiguration.IncrementPersonalDebt(Amount, PI.Jid, PI.PersonalNumber);
+			Amount = await ServiceConfiguration.IncrementPersonalDebt(Amount, PI.Jid, PI.PersonalNumber, PI.Country);
 
 			if (!ContractParameters.TryGetValue("DueDate", out object Obj) || !(Obj is DateTime DueDate))
 				DueDate = DateTime.Today.AddDays(30);
@@ -336,7 +338,7 @@ namespace TAG.Payments.NeuroCredits
 
 			PersonalInformation PI = new PersonalInformation(ID);
 
-			return await ServiceConfiguration.CurrentPersonalDebt(PI.Jid, PI.PersonalNumber) > 0;
+			return await ServiceConfiguration.CurrentPersonalDebt(PI.Jid, PI.PersonalNumber, PI.Country) > 0;
 		}
 
 		/// <summary>
@@ -464,7 +466,7 @@ namespace TAG.Payments.NeuroCredits
 				}
 			}
 
-			Amount = await ServiceConfiguration.DecrementPersonalDebt(Amount, PI.Jid, PI.PersonalNumber);
+			Amount = await ServiceConfiguration.DecrementPersonalDebt(Amount, PI.Jid, PI.PersonalNumber, PI.Country);
 
 			if (!ContractParameters.TryGetValue("ContractId", out object Obj) || !(Obj is string ContractId))
 				ContractId = null;
@@ -513,7 +515,7 @@ namespace TAG.Payments.NeuroCredits
 			if (!Gateway.IsDomain(Domain, true))
 				return new IDictionary<CaseInsensitiveString, object>[0];
 
-			decimal MaxAmount = await ServiceConfiguration.CurrentPersonalDebt(PI.Jid, PI.PersonalNumber);
+			decimal MaxAmount = await ServiceConfiguration.CurrentPersonalDebt(PI.Jid, PI.PersonalNumber, PI.Country);
 
 			return new IDictionary<CaseInsensitiveString, object>[]
 			{

@@ -21,6 +21,8 @@ if exists(Posted) then
 	SetSetting("TAG.Payments.NeuroCredits.Currencies",Posted.Currencies);
 	SetSetting("TAG.Payments.NeuroCredits.PrivatePersons",Boolean(Posted.AllowPrivatePersons));
 	SetSetting("TAG.Payments.NeuroCredits.Organizations",Boolean(Posted.AllowOrganizations));
+	SetSetting("TAG.Payments.NeuroCredits.DefaultPersonalLimit",Num(Posted.DefaultPersonalLimit));
+	SetSetting("TAG.Payments.NeuroCredits.DefaultOrganizationalLimit",Num(Posted.DefaultOrganizationalLimit));
 
 	TAG.Payments.NeuroCredits.ServiceConfiguration.InvalidateCurrent();
 
@@ -38,9 +40,19 @@ if exists(Posted) then
 <input id="Currencies" name="Currencies" type="text" value="{{GetSetting('TAG.Payments.NeuroCredits.Currencies','')}}"/>
 </p>
 
-Who can use the service:
+<p>
+<label for="DefaultPersonalLimit">Default personal credit limit: ({{DefaultCurrency:=GetSetting('DefaultCurrency','')}}):</label>  
+<input id="DefaultPersonalLimit" name="DefaultPersonalLimit" type="number" min="0" value="{{GetSetting('TAG.Payments.NeuroCredits.DefaultPersonalLimit',0)}}"/>
+</p>
 
 <p>
+<label for="DefaultOrganizationalLimit">Default organizational credit limit: ({{DefaultCurrency}}):</label>  
+<input id="DefaultOrganizationalLimit" name="DefaultOrganizationalLimit" type="number" min="0" value="{{GetSetting('TAG.Payments.NeuroCredits.DefaultOrganizationalLimit',0)}}"/>
+</p>
+
+Who can use the service:
+
+<p><
 <input id="AllowPrivatePersons" name="AllowPrivatePersons" type="checkbox" "{{GetSetting('TAG.Payments.NeuroCredits.PrivatePersons',false)?"checked":""}}"/>
 <label for="AllowPrivatePersons">Allow private persons to buy Neuro-Credits™</label>
 </p>

@@ -60,6 +60,24 @@ namespace TAG.Payments.NeuroCredits
 		}
 
 		/// <summary>
+		/// Default max limit for persons.
+		/// </summary>
+		public double DefaultMaxPersonalLimit
+		{
+			get;
+			private set;
+		}
+
+		/// <summary>
+		/// Default max limit for organizations.
+		/// </summary>
+		public double DefaultMaxOrganizationalLimit
+		{
+			get;
+			private set;
+		}
+
+		/// <summary>
 		/// If configuration is well-defined.
 		/// </summary>
 		public bool IsWellDefined
@@ -87,6 +105,8 @@ namespace TAG.Payments.NeuroCredits
 			Result.Currencies = (await RuntimeSettings.GetAsync(Prefix + ".Currencies", string.Empty)).Split(',');
 			Result.AllowPrivatePersons = await RuntimeSettings.GetAsync(Prefix + ".PrivatePersons", false);
 			Result.AllowOrganizations = await RuntimeSettings.GetAsync(Prefix + ".Organizations", false);
+			Result.DefaultMaxPersonalLimit = await RuntimeSettings.GetAsync(Prefix + ".DefaultPersonalLimit", 0d);
+			Result.DefaultMaxOrganizationalLimit = await RuntimeSettings.GetAsync(Prefix + ".DefaultOrganizationalLimit", 0d);
 
 			return Result;
 		}
@@ -153,15 +173,19 @@ namespace TAG.Payments.NeuroCredits
 		/// </summary>
 		/// <param name="Jid">JID of account.</param>
 		/// <param name="PersonalNumber">Personal number of account.</param>
+		/// <param name="Country">Country of person</param>
 		/// <param name="Currency">Currency</param>
 		/// <returns>Amount authorized, using the default currency of the broker.</returns>
-		public async Task<double> IsPersonAuthorized(string Jid, string PersonalNumber, string Currency)
+		public async Task<double> IsPersonAuthorized(string Jid, string PersonalNumber, string Country, string Currency)
 		{
 			if (string.IsNullOrEmpty(Jid) || string.IsNullOrEmpty(PersonalNumber))
 				return 0;
 
 			string Domain = XmppClient.GetDomain(Jid);
 			if (!string.IsNullOrEmpty(Domain) && !Gateway.IsDomain(Domain, true))
+				return 0;
+
+			if (!this.SupportsCountry(Country))
 				return 0;
 
 			if (!this.SupportsCurrency(Currency))
@@ -172,17 +196,17 @@ namespace TAG.Payments.NeuroCredits
 			if (string.IsNullOrEmpty(WalletCurrency) || WalletCurrency != Currency)
 				return 0;
 
-			double Amount = await RuntimeSettings.GetAsync(PersonalKey(Account, PersonalNumber), 0d);
-			decimal CurrentDebt = await CurrentPersonalDebt(Jid, PersonalNumber);
+			double Amount = await RuntimeSettings.GetAsync(PersonalKey(Account, PersonalNumber, Country), this.DefaultMaxPersonalLimit);
+			decimal CurrentDebt = await CurrentPersonalDebt(Jid, PersonalNumber, Country);
 
 			Amount -= (double)CurrentDebt;
 
 			return Amount;
 		}
 
-		private static string PersonalKey(string Account, string PersonalNumber)
+		private static string PersonalKey(string Account, string PersonalNumber, string Country)
 		{
-			return NeuroCreditsServiceProvider.ServiceId + ".Accounts." + Account + "." + PersonalNumber;
+			return NeuroCreditsServiceProvider.ServiceId + ".Accounts." + Account + "." + Country + "." + PersonalNumber;
 		}
 
 		/// <summary>
@@ -190,31 +214,32 @@ namespace TAG.Payments.NeuroCredits
 		/// </summary>
 		/// <param name="Jid">JID of account.</param>
 		/// <param name="PersonalNumber">Personal number of account.</param>
+		/// <param name="Country">Country of person.</param>
 		/// <returns>Current personal debt, using the default currency of the broker.</returns>
-		public static async Task<decimal> CurrentPersonalDebt(string Jid, string PersonalNumber)
+		public static async Task<decimal> CurrentPersonalDebt(string Jid, string PersonalNumber, string Country)
 		{
 			string Account = XmppClient.GetAccount(Jid);
-			long Count = await RuntimeCounters.GetCount(PersonalKey(Account, PersonalNumber));
+			long Count = await RuntimeCounters.GetCount(PersonalKey(Account, PersonalNumber, Country));
 
 			return 0.0001M * Count;
 		}
 
-		internal static async Task<decimal> IncrementPersonalDebt(decimal Amount, string Jid, string PersonalNumber)
+		internal static async Task<decimal> IncrementPersonalDebt(decimal Amount, string Jid, string PersonalNumber, string Country)
 		{
 			string Account = XmppClient.GetAccount(Jid);
 			long CountDelta = (long)(Amount * 10000);
 
-			await RuntimeCounters.IncrementCounter(PersonalKey(Account, PersonalNumber), CountDelta);
+			await RuntimeCounters.IncrementCounter(PersonalKey(Account, PersonalNumber, Country), CountDelta);
 
 			return 0.0001M * CountDelta;
 		}
 
-		internal static async Task<decimal> DecrementPersonalDebt(decimal Amount, string Jid, string PersonalNumber)
+		internal static async Task<decimal> DecrementPersonalDebt(decimal Amount, string Jid, string PersonalNumber, string Country)
 		{
 			string Account = XmppClient.GetAccount(Jid);
 			long CountDelta = (long)(Amount * 10000);
 
-			await RuntimeCounters.DecrementCounter(PersonalKey(Account, PersonalNumber), CountDelta);
+			await RuntimeCounters.DecrementCounter(PersonalKey(Account, PersonalNumber, Country), CountDelta);
 
 			return 0.0001M * CountDelta;
 		}
@@ -224,10 +249,13 @@ namespace TAG.Payments.NeuroCredits
 		/// </summary>
 		/// <param name="Jid">JID of account.</param>
 		/// <param name="OrganizationNumber">Organization number.</param>
+		/// <param name="OrganizationCountry">Country of organization.</param>
 		/// <param name="PersonalNumber">Personal number of person representing the organization.</param>
+		/// <param name="PersonCountry">Country of person.</param>
 		/// <param name="Currency">Currency</param>
 		/// <returns>Amount authorized, using the default currency of the broker.</returns>
-		public async Task<double> IsOrganizationAuthorized(string Jid, string OrganizationNumber, string PersonalNumber, string Currency)
+		public async Task<double> IsOrganizationAuthorized(string Jid, string OrganizationNumber, string OrganizationCountry,
+			string PersonalNumber, string PersonCountry, string Currency)
 		{
 			if (string.IsNullOrEmpty(Jid) || string.IsNullOrEmpty(OrganizationNumber) || string.IsNullOrEmpty(PersonalNumber))
 				return 0;
@@ -244,30 +272,56 @@ namespace TAG.Payments.NeuroCredits
 			if (string.IsNullOrEmpty(WalletCurrency) || WalletCurrency != Currency)
 				return 0;
 
-			double Amount = await RuntimeSettings.GetAsync(OrganizationKey(OrganizationNumber, PersonalNumber), 0d);
-			decimal CurrentDebt = await CurrentOrganizationDebt(OrganizationNumber, PersonalNumber);
+			double Amount = await RuntimeSettings.GetAsync(
+				OrganizationKey(OrganizationNumber, OrganizationCountry, PersonalNumber, PersonCountry),
+				this.DefaultMaxOrganizationalLimit);
+
+			decimal CurrentDebt = await CurrentOrganizationDebt(OrganizationNumber, OrganizationCountry, PersonalNumber, PersonCountry);
 
 			Amount -= (double)CurrentDebt;
 
 			return Amount;
 		}
 
-		private static string OrganizationKey(string OrganizationNumber, string PersonalNumber)
+		private static string OrganizationKey(string OrganizationNumber, string OrganizationCountry, string PersonalNumber, string PersonCountry)
 		{
-			return NeuroCreditsServiceProvider.ServiceId + ".Organization." + OrganizationNumber + "." + PersonalNumber;
+			return NeuroCreditsServiceProvider.ServiceId + ".Organization." + OrganizationCountry + "." + OrganizationNumber +
+				"." + PersonCountry + "." + PersonalNumber;
 		}
 
 		/// <summary>
 		/// Gets the current organization debt.
 		/// </summary>
 		/// <param name="OrganizationNumber">Organization number.</param>
-		/// <param name="PersonalNumber">Personal number of account.</param>
+		/// <param name="OrganizationCountry">Country of organization.</param>
+		/// <param name="PersonalNumber">Personal number of person representing the organization.</param>
+		/// <param name="PersonCountry">Country of person.</param>
 		/// <returns>Current personal debt, using the default currency of the broker.</returns>
-		public static async Task<decimal> CurrentOrganizationDebt(string OrganizationNumber, string PersonalNumber)
+		public static async Task<decimal> CurrentOrganizationDebt(string OrganizationNumber, string OrganizationCountry,
+			string PersonalNumber, string PersonCountry)
 		{
-			long Count = await RuntimeCounters.GetCount(OrganizationKey(OrganizationNumber, PersonalNumber));
+			long Count = await RuntimeCounters.GetCount(OrganizationKey(OrganizationNumber, OrganizationCountry, PersonalNumber, PersonCountry));
 
 			return 0.0001M * Count;
+		}
+
+		/// <summary>
+		/// Checks if a country is supported.
+		/// </summary>
+		/// <param name="Country">Country</param>
+		/// <returns>If country is supported.</returns>
+		public bool SupportsCountry(CaseInsensitiveString Country)
+		{
+			if (!this.IsWellDefined)
+				return false;
+
+			foreach (string s in this.Countries)
+			{
+				if (s.Trim().ToLower() == Country.LowerCase)
+					return true;
+			}
+
+			return false;
 		}
 
 		/// <summary>
