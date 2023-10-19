@@ -161,7 +161,7 @@ namespace TAG.Payments.NeuroCredits
 				return 0;
 
 			string Domain = XmppClient.GetDomain(Jid);
-			if (!Gateway.IsDomain(Domain, true))
+			if (!string.IsNullOrEmpty(Domain) && !Gateway.IsDomain(Domain, true))
 				return 0;
 
 			if (!this.SupportsCurrency(Currency))
