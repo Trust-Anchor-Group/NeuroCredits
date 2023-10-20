@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "Profile 1": {
+    "IoT Gateway": {
       "commandName": "Executable",
       "executablePath": "C:\\Program Files\\dotnet\\dotnet.exe",
       "commandLineArgs": "Waher.IoTGateway.Console.dll -instance Dev",
