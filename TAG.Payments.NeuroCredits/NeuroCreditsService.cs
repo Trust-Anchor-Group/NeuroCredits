@@ -21,10 +21,10 @@ namespace TAG.Payments.NeuroCredits
 	/// </summary>
 	public class NeuroCreditsService : IBuyEDalerService, ISellEDalerService
 	{
-		private const string buyEDalerTemplateId = "2cc43dd6-4395-efdd-80d1-60ba31011f89@legal.";
-		private const string sellEDalerTemplateId = "2cc43bab-749d-bf32-a82f-6ff8340c0860@legal.";
-		//private const string buyEDalerTemplateId = "2cc53e98-7a90-b7a9-8c1e-cdd64219452d@legal.lab.tagroot.io";
-		//private const string sellEDalerTemplateId = "2cc53ea8-7a90-b7af-8c1e-cdd6420a125f@legal.lab.tagroot.io";
+		private const string buyEDalerTemplateIdDev = "2cc43dd6-4395-efdd-80d1-60ba31011f89@legal.";    // For local development, you need to republish the contracts on the local development neuron,
+		private const string sellEDalerTemplateIdDev = "2cc43bab-749d-bf32-a82f-6ff8340c0860@legal.";	// and replace these values with your local Contract IDs. Do not check those IDs into the repo.
+		private const string buyEDalerTemplateIdProd = "2cc53e98-7a90-b7a9-8c1e-cdd64219452d@legal.lab.tagroot.io";
+		private const string sellEDalerTemplateIdProd = "2cc53ea8-7a90-b7af-8c1e-cdd6420a125f@legal.lab.tagroot.io";
 
 		private readonly NeuroCreditsServiceProvider provider;
 
@@ -96,7 +96,7 @@ namespace TAG.Payments.NeuroCredits
 		/// <summary>
 		/// Contract ID of Template, for buying e-Daler
 		/// </summary>
-		public string BuyEDalerTemplateContractId => buyEDalerTemplateId;
+		public string BuyEDalerTemplateContractId => string.IsNullOrEmpty(Gateway.Domain) ? buyEDalerTemplateIdDev : buyEDalerTemplateIdProd;
 
 		/// <summary>
 		/// Reference to the service provider.
@@ -318,7 +318,7 @@ namespace TAG.Payments.NeuroCredits
 		/// <summary>
 		/// Contract ID of Template, for selling e-Daler
 		/// </summary>
-		public string SellEDalerTemplateContractId => sellEDalerTemplateId;
+		public string SellEDalerTemplateContractId => string.IsNullOrEmpty(Gateway.Domain) ? sellEDalerTemplateIdDev : sellEDalerTemplateIdProd;
 
 		/// <summary>
 		/// Reference to the service provider.
