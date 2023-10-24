@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using TAG.Payments.NeuroCredits.Data;
 using Waher.Content;
@@ -22,10 +21,10 @@ namespace TAG.Payments.NeuroCredits
 	/// </summary>
 	public class NeuroCreditsService : IBuyEDalerService, ISellEDalerService
 	{
-		private const string buyEDalerTemplateIdDev = "2cc43dd6-4395-efdd-80d1-60ba31011f89@legal.";    // For local development, you need to republish the contracts on the local development neuron,
-		private const string sellEDalerTemplateIdDev = "2cc43bab-749d-bf32-a82f-6ff8340c0860@legal.";   // and replace these values with your local Contract IDs. Do not check those IDs into the repo.
-		private const string buyEDalerTemplateIdProd = "2cc53e98-7a90-b7a9-8c1e-cdd64219452d@legal.lab.tagroot.io";
-		private const string sellEDalerTemplateIdProd = "2cc53ea8-7a90-b7af-8c1e-cdd6420a125f@legal.lab.tagroot.io";
+		private const string buyEDalerTemplateIdDev = "2ccae7c5-bea4-cdad-ec97-0d1b02016989@legal.";    // For local development, you need to republish the contracts on the local development neuron,
+		private const string sellEDalerTemplateIdDev = "2ccae7dd-bea4-cdb1-ec97-0d1b0277db08@legal.";   // and replace these values with your local Contract IDs. Do not check those IDs into the repo.
+		private const string buyEDalerTemplateIdProd = "2ccae830-50ee-276d-7030-d6ad4fa694bb@legal.lab.tagroot.io";
+		private const string sellEDalerTemplateIdProd = "2ccae845-50ee-2774-7030-d6ad4f0f34e3@legal.lab.tagroot.io";
 
 		private readonly NeuroCreditsServiceProvider provider;
 
