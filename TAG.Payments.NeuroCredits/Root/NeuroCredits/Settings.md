@@ -17,14 +17,17 @@ Login: /Login.md
 {{
 if exists(Posted) then
 (
+	Period:=Duration(Posted.Period) ??? error("Invalid Duration");
+
 	SetSetting("TAG.Payments.NeuroCredits.Countries",Posted.Countries);
 	SetSetting("TAG.Payments.NeuroCredits.Currencies",Posted.Currencies);
 	SetSetting("TAG.Payments.NeuroCredits.PrivatePersons",Boolean(Posted.AllowPrivatePersons ??? false));
 	SetSetting("TAG.Payments.NeuroCredits.Organizations",Boolean(Posted.AllowOrganizations ??? false));
 	SetSetting("TAG.Payments.NeuroCredits.DefaultPersonalLimit",Num(Posted.DefaultPersonalLimit));
 	SetSetting("TAG.Payments.NeuroCredits.DefaultOrganizationalLimit",Num(Posted.DefaultOrganizationalLimit));
-	SetSetting("TAG.Payments.NeuroCredits.DueDays",Num(Posted.DueDays));
-	SetSetting("TAG.Payments.NeuroCredits.DueInterest",Num(Posted.DueInterest));
+	SetSetting("TAG.Payments.NeuroCredits.Period",Str(Period));
+	SetSetting("TAG.Payments.NeuroCredits.PeriodInterest",Num(Posted.PeriodInterest));
+	SetSetting("TAG.Payments.NeuroCredits.MaxInstallments",Num(Posted.MaxInstallments));
 
 	TAG.Payments.NeuroCredits.ServiceConfiguration.InvalidateCurrent();
 
@@ -53,13 +56,19 @@ if exists(Posted) then
 </p>
 
 <p>
-<label for="DueDays">Number of **days** credit:</label>  
-<input id="DueDays" name="DueDays" type="number" min="1" value="{{GetSetting('TAG.Payments.NeuroCredits.DueDays',30)}}" style="max-width:20em"/>
+<label for="Period">Credit **period** (i.e. [ISO 8601 duration](https://www.digi.com/resources/documentation/digidocs//90001488-13/reference/r_iso_8601_duration_format.htm) 
+until first installment, and between installments):</label>  
+<input id="Period" name="Period" type="text" pattern="^(-?)P(?=\d|T\d)(?:(\d+)Y)?(?:(\d+)M)?(?:(\d+)([DW]))?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?)?$" value="{{GetSetting('TAG.Payments.NeuroCredits.Period','P1M')}}" style="max-width:20em"/>
 </p>
 
 <p>
-<label for="DueInterest">Due **interest**: (\%)</label>  
-<input id="DueInterest" name="DueInterest" type="number" min="0" value="{{GetSetting('TAG.Payments.NeuroCredits.DueInterest',10)}}" style="max-width:20em"/>
+<label for="PeriodInterest">Period **interest**: (\%)</label>  
+<input id="PeriodInterest" name="PeriodInterest" type="number" min="0" value="{{GetSetting('TAG.Payments.NeuroCredits.PeriodInterest',2)}}" style="max-width:20em"/>
+</p>
+
+<p>
+<label for="MaxInstallments">Maximum number of **installments**:</label>  
+<input id="MaxInstallments" name="MaxInstallments" type="number" min="1" max="12" value="{{GetSetting('TAG.Payments.NeuroCredits.MaxInstallments',6)}}" style="max-width:20em"/>
 </p>
 
 Who can use the service:

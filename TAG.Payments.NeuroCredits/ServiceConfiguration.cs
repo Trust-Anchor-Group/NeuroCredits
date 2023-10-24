@@ -146,7 +146,7 @@ namespace TAG.Payments.NeuroCredits
 			Result.DefaultMaxPersonalLimit = (decimal)await RuntimeSettings.GetAsync(Prefix + ".DefaultPersonalLimit", 0d);
 			Result.DefaultMaxOrganizationalLimit = (decimal)await RuntimeSettings.GetAsync(Prefix + ".DefaultOrganizationalLimit", 0d);
 			Result.PeriodInterest = (decimal)await RuntimeSettings.GetAsync(Prefix + ".PeriodInterest", 2d);
-			Result.MaxInstallments = (int)await RuntimeSettings.GetAsync(Prefix + ".MaxInstallments", 12d);
+			Result.MaxInstallments = (int)await RuntimeSettings.GetAsync(Prefix + ".MaxInstallments", 6d);
 
 			if (Duration.TryParse(await RuntimeSettings.GetAsync(Prefix + ".Period", "P1M"), out Duration D))
 				Result.Period = D;
