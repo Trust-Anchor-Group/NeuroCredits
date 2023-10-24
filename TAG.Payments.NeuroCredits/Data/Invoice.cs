@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using Waher.Content;
 using Waher.Persistence;
 using Waher.Persistence.Attributes;
+using Waher.Script;
 
 namespace TAG.Payments.NeuroCredits.Data
 {
@@ -11,9 +14,12 @@ namespace TAG.Payments.NeuroCredits.Data
 	[CollectionName("NeuroCreditInvoices")]
 	[TypeName(TypeNameSerialization.None)]
 	[Index("InvoiceNumber")]
-	[Index("DueDate", "InvoiceNumber")]
+	[Index("InvoiceDate", "InvoiceNumber")]
+	[Index("IsPaid", "DueDate", "InvoiceNumber")]
 	[Index("Account", "IsPaid", "InvoiceNumber")]
 	[Index("Account", "IsPaid", "Amount")]
+	[ObsoleteMethod(nameof(UpgradePropertyValue))]
+	[ArchivingTime(3653)]
 	public class Invoice
 	{
 		/// <summary>
@@ -23,6 +29,9 @@ namespace TAG.Payments.NeuroCredits.Data
 		{
 		}
 
+		/// <summary>
+		/// Object ID
+		/// </summary>
 		[ObjectId]
 		public string ObjectId { get; set; }
 
@@ -47,6 +56,16 @@ namespace TAG.Payments.NeuroCredits.Data
 		public decimal Amount { get; set; }
 
 		/// <summary>
+		/// Any late fees.
+		/// </summary>
+		public decimal LateFees { get; set; }
+
+		/// <summary>
+		/// Number of reminders sent.
+		/// </summary>
+		public int NrReminders { get; set; }
+
+		/// <summary>
 		/// Currency
 		/// </summary>
 		public CaseInsensitiveString Currency { get; set; }
@@ -57,9 +76,19 @@ namespace TAG.Payments.NeuroCredits.Data
 		public DateTime DueDate { get; set; }
 
 		/// <summary>
+		/// Invoice period, on which the <see cref="DueDate"/> is calculated.
+		/// </summary>
+		public Duration Period { get; set; }
+
+		/// <summary>
 		/// Due interest
 		/// </summary>
-		public double DueInterest { get; set; }
+		public decimal PeriodInterest { get; set; }
+
+		/// <summary>
+		/// Installment number.
+		/// </summary>
+		public int Installment { get; set; }
 
 		/// <summary>
 		/// When invoice was created
@@ -70,6 +99,16 @@ namespace TAG.Payments.NeuroCredits.Data
 		/// When invoice was paid
 		/// </summary>
 		public DateTime Paid { get; set; }
+
+		/// <summary>
+		/// When invoice was sent.
+		/// </summary>
+		public DateTime InvoiceDate { get; set; }
+
+		/// <summary>
+		/// When last reminder was sent.
+		/// </summary>
+		public DateTime LastReminder { get; set; }
 
 		/// <summary>
 		/// Contract ID of when Neuro-Credits™ was bought.
@@ -220,7 +259,8 @@ namespace TAG.Payments.NeuroCredits.Data
 				new KeyValuePair<string, object>("Amount", this.Amount), // TODO: Take due into account in separate tag.
 				new KeyValuePair<string, object>("Currency", this.Currency),
 				new KeyValuePair<string, object>("DueDate", this.DueDate),
-				new KeyValuePair<string, object>("DueInterest", this.DueInterest),
+				new KeyValuePair<string, object>("Period", this.Period.ToString()),
+				new KeyValuePair<string, object>("PeriodInterest", this.PeriodInterest),
 				new KeyValuePair<string, object>("Created", this.Created)
 			};
 
@@ -310,5 +350,27 @@ namespace TAG.Payments.NeuroCredits.Data
 
 			return Result.ToArray();
 		}
+
+		/// <summary>
+		/// Upgrades properties persisted in earlier version.
+		/// </summary>
+		/// <param name="Properties">Obsolete properties.</param>
+		public void UpgradePropertyValue(Dictionary<string, object> Properties)
+		{
+			foreach (KeyValuePair<string,object> Property in Properties)
+			{
+				switch (Property.Key)
+				{
+					case "DueInterest":
+						this.PeriodInterest = Expression.ToDecimal(Property.Value);
+						break;
+
+					case "DueDays":
+						this.Period = new Duration(false, 0, 0, (int)Expression.ToDouble(Property.Value), 0, 0, 0);
+						break;
+				}
+			}
+		}
+
 	}
 }

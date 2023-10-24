@@ -56,24 +56,52 @@
 				</paragraph>
 			</description>
 		</stringParameter>
-		<numericalParameter name="DueDays" min="0" minIncluded="false" max="30" maxIncluded="true" exp="DueDays=floor(DueDays)">
+		<durationParameter name="Period" min="P1D" minIncluded="true" max="P3M" maxIncluded="true" exp="Hours(Period)=0 and Minutes(Period)=0 and Seconds(Period)=0">
 			<description xml:lang="en">
 				<paragraph>
-					<text>Number of days before the amount is due to be paid.</text>
+					<text>Time, before payment of first installment, as well as the time between installments.</text>
+				</paragraph>
+			</description>
+		</durationParameter>
+		<numericalParameter name="PeriodInterest" min="0" minIncluded="false">
+			<description xml:lang="en">
+				<paragraph>
+					<text>Interest rate (in percent) on amount, for each installment period.</text>
 				</paragraph>
 			</description>
 		</numericalParameter>
-		<numericalParameter name="DueInterest" min="0" minIncluded="false">
+		<calcParameter name="InitialDueDate" exp="Today+TimeSpan(1,0,0,0)+Period">
 			<description xml:lang="en">
 				<paragraph>
-					<text>Interest rate (in percent) on amount, if not paid by due date.</text>
+					<text>Date before which payment of the first installment is due.</text>
+				</paragraph>
+			</description>
+		</calcParameter>
+		<calcParameter name="Price" exp="ceil(Amount*(100+PeriodInterest)/100)">
+			<description xml:lang="en">
+				<paragraph>
+					<text>Price of buying Neuro-Credits™.</text>
+				</paragraph>
+			</description>
+		</calcParameter>
+		<numericalParameter name="Installments" min="1" minIncluded="true" max="6" maxIncluded="true">
+			<description xml:lang="en">
+				<paragraph>
+					<text>Number of installments over which to pay the Neuro-Credits™</text>
 				</paragraph>
 			</description>
 		</numericalParameter>
-		<calcParameter name="DueDate" exp="Today+TimeSpan(DueDays,0,0,0)">
+		<calcParameter name="EstimatedEnd" exp="Today+TimeSpan(1,0,0,0)+Period*Installments">
 			<description xml:lang="en">
 				<paragraph>
-					<text>Date before which payment of the amount is due.</text>
+					<text>Estimated clearance of credit, if payment plan is followed.</text>
+				</paragraph>
+			</description>
+		</calcParameter>
+		<calcParameter name="TotalCost" exp="AmountLeft:=Price;sum([foreach x in 1..Installments do (Installment:=ceil(AmountLeft/(Installments-x+1));AmountLeft-=Installment;AmountLeft:=ceil(AmountLeft*(100+PeriodInterest)/100);Installment)])">
+			<description xml:lang="en">
+				<paragraph>
+					<text>Total cost of buying Neuro-Credits™, over all installments.</text>
 				</paragraph>
 			</description>
 		</calcParameter>
@@ -257,9 +285,14 @@
 					<bold>
 						<text>Trust Provider</text>
 					</bold>
-					<text>. The amount will be invoiced to the </text>
+					<text>. The amount, with additional charges (see below) will be invoiced to the </text>
 					<bold>
 						<text>Buyer</text>
+					</bold>
+					<text>, in </text>
+					<bold>
+						<parameter name="Installments"/>
+						<text> installment(s)</text>
 					</bold>
 					<text>, on the address provided in the digital ID used to sign the contract.</text>
 				</paragraph>
@@ -269,29 +302,59 @@
 					</header>
 					<body>
 						<paragraph>
-							<text>The </text>
+							<text>The total cost, including interest and installments, assuming the </text>
 							<bold>
 								<text>Buyer</text>
 							</bold>
-							<text> commits to pay the amount within </text>
+							<text> pays in time, is </text>
 							<bold>
-								<parameter name="DueDays" />
-								<text> days</text>
+								<parameter name="TotalCost"/>
+								<text> </text>
+								<parameter name="Currency"/>
+							</bold>
+							<text>. The </text>
+							<bold>
+								<text>Buyer</text>
+							</bold>
+							<text> commits to pay this total cost in </text>
+							<bold>
+								<parameter name="Installments" />
+								<text> installment(s)</text>
+							</bold>
+							<text>, the first within </text>
+							<bold>
+								<parameter name="Period" />
 							</bold>
 							<text>, counted from the time this contract is signed (</text>
 							<bold>
-								<parameter name="DueDate" />
+								<parameter name="InitialDueDate" />
 							</bold>
-							<text>). If the </text>
+							<text>). Each installment (if more than one) is also separated by </text>
+							<bold>
+								<parameter name="Period" />
+							</bold>
+							<text>. If the </text>
 							<bold>
 								<text>Buyer</text>
 							</bold>
-							<text> does not pay the amount in time, an interest rate of </text>
+							<text> complies with the payment plan, the credit is estimated to be cleared on </text>
 							<bold>
-								<parameter name="DueInterest" />
+								<parameter name="EstimatedEnd"/>
+							</bold>
+							<text>. If the </text>
+							<bold>
+								<text>Buyer</text>
+							</bold>
+							<text> does not pay an invoice in time, a late fee of </text>
+							<bold>
+								<parameter name="PeriodInterest" />
 								<text>%</text>
 							</bold>
-							<text> will be applied, as will additional invoice fees.</text>
+							<text> will be added to the installment amount, and the due date of that installment will be moved forward another period (</text>
+							<bold>
+								<parameter name="Period" />
+							</bold>
+							<text>) accordingly.</text>
 						</paragraph>
 					</body>
 				</section>
@@ -338,6 +401,24 @@
 								<text>Buyer</text>
 							</bold>
 							<text> accordingly.</text>
+						</paragraph>
+					</body>
+				</section>
+				<section>
+					<header>
+						<text>Bank Fees</text>
+					</header>
+					<body>
+						<paragraph>
+							<text>The </text>
+							<bold>
+								<text>Buyer</text>
+							</bold>
+							<text> pays for any bank fees incurred during payment of the invoices. The </text>
+							<bold>
+								<text>Trust Provider</text>
+							</bold>
+							<text> counts an invoice as cancelled when the net amount invoiced have been paid.</text>
 						</paragraph>
 					</body>
 				</section>
@@ -417,10 +498,28 @@
 							</row>
 							<row>
 								<cell colSpan="1" header="false" alignment="Left">
-									<text>Due Date:</text>
+									<text>Estimated Total Cost:</text>
 								</cell>
 								<cell colSpan="1" header="false" alignment="Right">
-									<parameter name="DueDate" />
+									<parameter name="TotalCost" />
+									<text> </text>
+									<parameter name="Currency" />
+								</cell>
+							</row>
+							<row>
+								<cell colSpan="1" header="false" alignment="Left">
+									<text>Initial Due Date:</text>
+								</cell>
+								<cell colSpan="1" header="false" alignment="Right">
+									<parameter name="InitialDueDate" />
+								</cell>
+							</row>
+							<row>
+								<cell colSpan="1" header="false" alignment="Left">
+									<text>Estimated End:</text>
+								</cell>
+								<cell colSpan="1" header="false" alignment="Right">
+									<parameter name="EstimatedEnd" />
 								</cell>
 							</row>
 							<row>
@@ -428,8 +527,24 @@
 									<text>Late payment interest:</text>
 								</cell>
 								<cell colSpan="1" header="false" alignment="Right">
-									<parameter name="DueInterest" />
+									<parameter name="PeriodInterest" />
 									<text>%</text>
+								</cell>
+							</row>
+							<row>
+								<cell colSpan="1" header="false" alignment="Left">
+									<text>Installments:</text>
+								</cell>
+								<cell colSpan="1" header="false" alignment="Right">
+									<parameter name="Installments" />
+								</cell>
+							</row>
+							<row>
+								<cell colSpan="1" header="false" alignment="Left">
+									<text>Period:</text>
+								</cell>
+								<cell colSpan="1" header="false" alignment="Right">
+									<parameter name="Period" />
 								</cell>
 							</row>
 						</table>

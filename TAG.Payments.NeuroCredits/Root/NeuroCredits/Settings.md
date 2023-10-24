@@ -10,9 +10,9 @@ Login: /Login.md
 
 ========================================================================
 
-<form action="Settings.md" method="post">
 <fieldset>
-<legend>Neuro-Credits™ settings</legend>
+<legend>General settings</legend>
+<form action="Settings.md" method="post">
 
 {{
 if exists(Posted) then
@@ -75,5 +75,43 @@ Who can use the service:
 </p>
 
 <button type="submit" class="posButton">Apply</button>
-</fieldset>
 </form>
+</fieldset>
+
+<fieldset id="IndividualAuthorizations">
+<legend>Individual authorizations</legend>
+
+| Account | Personal Number | Country | Amount | Currency |   |   |
+|:--------|:----------------|:--------|-------:|:---------|:-:|:-:|
+{{
+RS:=select Key, Value from "Settings" where Key like "TAG.Payments.NeuroCredits.Accounts.%";
+foreach x in RS do
+(
+	if x[0] like "TAG\.Payments\.NeuroCredits\.Accounts\.(?'Account'[^\\.]+)\.(?'Country'[^\\.]+)\.(?'PNr'[^\\.]+)" then
+		]]| `((Account))` | ((PNr)) | ((Country)) | ((X[1])) | ((TAG.Payments.NeuroCredits.ServiceConfiguration.GetCurrencyOfAccount(Account);)) | <button type="button" class="posButtonSm" data-account="((Account))" onclick="EditAccount(this)">Edit</button> | <button type="button" class="negButtonSm" data-account="((Account))" onclick="DeleteAccount(this)">Delete</button> |
+[[
+)
+}}
+
+<button type="button" class="posButton" onclick="AddAccount()">Add Account</button>
+
+</fieldset>
+
+<fieldset id="OrganizationAuthorizations">
+<legend>Organizational authorizations</legend>
+
+| Organization Number | Country | Personal Number | Country | Amount | Currency |   |   |
+|:--------------------|:--------|:----------------|:--------|-------:|:---------|:-:|:-:|
+{{
+RS:=select Key, Value from "Settings" where Key like "TAG.Payments.NeuroCredits.Organization.%";
+foreach x in RS do
+(
+	if x[0] like "TAG\.Payments\.NeuroCredits\.Organization\.(?'OrgCountry'[^\\.]+)\.(?'OrgNr'[^\\.]+)\.(?'Country'[^\\.]+)\.(?'PNr'[^\\.]+)" then
+		]]| ((OrgNr)) | ((OrgCountry)) | ((PNr)) | ((Country)) | ((X[1])) | ((TAG.Payments.NeuroCredits.ServiceConfiguration.DefaultCurrency();)) | <button type="button" class="posButtonSm" data-orgnr="((OrgNr))" onclick="EditOrganization(this)">Edit</button> | <button type="button" class="negButtonSm" data-orgnr="((OrgNr))" onclick="DeleteOrganization(this)">Delete</button> |
+[[
+)
+}}
+
+<button type="button" class="posButton" onclick="AddOrganization()">Add Organization</button>
+
+</fieldset>

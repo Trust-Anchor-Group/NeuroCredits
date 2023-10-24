@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using TAG.Payments.NeuroCredits.Data;
 using Waher.Content;
@@ -22,7 +23,7 @@ namespace TAG.Payments.NeuroCredits
 	public class NeuroCreditsService : IBuyEDalerService, ISellEDalerService
 	{
 		private const string buyEDalerTemplateIdDev = "2cc43dd6-4395-efdd-80d1-60ba31011f89@legal.";    // For local development, you need to republish the contracts on the local development neuron,
-		private const string sellEDalerTemplateIdDev = "2cc43bab-749d-bf32-a82f-6ff8340c0860@legal.";	// and replace these values with your local Contract IDs. Do not check those IDs into the repo.
+		private const string sellEDalerTemplateIdDev = "2cc43bab-749d-bf32-a82f-6ff8340c0860@legal.";   // and replace these values with your local Contract IDs. Do not check those IDs into the repo.
 		private const string buyEDalerTemplateIdProd = "2cc53e98-7a90-b7a9-8c1e-cdd64219452d@legal.lab.tagroot.io";
 		private const string sellEDalerTemplateIdProd = "2cc53ea8-7a90-b7af-8c1e-cdd6420a125f@legal.lab.tagroot.io";
 
@@ -124,7 +125,9 @@ namespace TAG.Payments.NeuroCredits
 			PersonalInformation PI = new PersonalInformation(ID);
 			string WalletCurrency = await ServiceConfiguration.GetCurrencyOfAccount(AccountName);
 
-			return await MaxCreditAmountAuthorized(PI, Configuration, WalletCurrency) > 0;
+			(decimal Amount, _, _, _) = await MaxCreditAmountAuthorized(PI, Configuration, WalletCurrency);
+
+			return Amount > 0;
 		}
 
 		private static async Task<GenericObject> GetLegalID(CaseInsensitiveString AccountName)
@@ -149,33 +152,29 @@ namespace TAG.Payments.NeuroCredits
 		/// <param name="Configuration">Current configuration.</param>
 		/// <param name="Currency">Currency</param>
 		/// <returns>Amount of Neuro-Credits™ authorized.</returns>
-		internal static async Task<double> MaxCreditAmountAuthorized(PersonalInformation PI, ServiceConfiguration Configuration, string Currency)
+		internal static async Task<(decimal, bool, AccountConfiguration, OrganizationConfiguration)> MaxCreditAmountAuthorized(PersonalInformation PI, ServiceConfiguration Configuration, string Currency)
 		{
-			double MaxAmount;
+			AccountConfiguration AccountConfiguration;
+			OrganizationConfiguration OrganizationConfiguration;
+			decimal MaxAmount;
 
-			if (!PI.HasPersonalBillingInformation)
-				return 0;
-
-			if (Configuration.AllowPrivatePersons)
+			if (Configuration.AllowOrganizations && PI.HasOrganizationalBillingInformation)
 			{
-				MaxAmount = await Configuration.IsPersonAuthorized(PI.Jid, PI.PersonalNumber, PI.Country, Currency);
-				if (MaxAmount > 0)
-					return MaxAmount;
-			}
-
-			if (!PI.HasOrganizationalBillingInformation)
-				return 0;
-
-			if (Configuration.AllowOrganizations)
-			{
-				MaxAmount = await Configuration.IsOrganizationAuthorized(PI.Jid, PI.OrganizationNumber, PI.OrganizationCountry,
+				(MaxAmount, OrganizationConfiguration) = await Configuration.IsOrganizationAuthorized(PI.Jid, PI.OrganizationNumber, PI.OrganizationCountry,
 					PI.PersonalNumber, PI.Country, Currency);
 
 				if (MaxAmount > 0)
-					return MaxAmount;
+					return (MaxAmount, false, null, OrganizationConfiguration);
 			}
 
-			return 0;
+			if (Configuration.AllowPrivatePersons && PI.HasPersonalBillingInformation)
+			{
+				(MaxAmount, AccountConfiguration) = await Configuration.IsPersonAuthorized(PI.Jid, PI.PersonalNumber, PI.Country, Currency);
+				if (MaxAmount > 0)
+					return (MaxAmount, true, AccountConfiguration, null);
+			}
+
+			return (0, false, null, null);
 		}
 
 		/// <summary>
@@ -206,65 +205,105 @@ namespace TAG.Payments.NeuroCredits
 				return new PaymentResult("Neuro-Credits™ service not configured properly.");
 
 			PersonalInformation PI = new PersonalInformation(IdentityProperties);
-			double MaxAmount = await MaxCreditAmountAuthorized(PI, Configuration, Currency);
+			(decimal MaxAmount, bool AsPerson, AccountConfiguration AccountConfiguration, OrganizationConfiguration OrganizationConfiguration) =
+				await MaxCreditAmountAuthorized(PI, Configuration, Currency);
 
 			if (MaxAmount <= 0)
 				return new PaymentResult("Not authorized to buy Neuro-Credits™. Contact your operator to receive authorization to buy Neuro-Credits™. If there are outstanding payments, you might need to cleared those first.");
 
-			if ((double)Amount > MaxAmount)
+			if (Amount > MaxAmount)
 				return new PaymentResult("Amount exceeds maximum allowed amount.");
 
-			Amount = await ServiceConfiguration.IncrementPersonalDebt(Amount, PI.Jid, PI.PersonalNumber, PI.Country);
+			Duration ExpectedPeriod = OrganizationConfiguration?.Period ?? AccountConfiguration?.Period ?? Configuration.Period;
+			decimal ExpectedPeriodInterest = OrganizationConfiguration?.PeriodInterest ?? AccountConfiguration?.PeriodInterest ?? Configuration.PeriodInterest;
+			DateTime ExpectedInitialDueDate = DateTime.Today.AddDays(1) + Configuration.Period;
+			decimal MaxInstallments = OrganizationConfiguration?.MaxInstallments ?? AccountConfiguration?.MaxInstallments ?? Configuration.MaxInstallments;
 
-			if (!ContractParameters.TryGetValue("DueDate", out object Obj) || !(Obj is DateTime DueDate))
-				DueDate = DateTime.Today.AddDays(30);
+			if (!ContractParameters.TryGetValue("Period", out object Obj) || !(Obj is Duration Period) || Period != ExpectedPeriod)
+				return new PaymentResult("Period of contract unexpected.");
+
+			if (!ContractParameters.TryGetValue("PeriodInterest", out Obj) || !(Obj is decimal PeriodInterest) || PeriodInterest != ExpectedPeriodInterest)
+				return new PaymentResult("Period interest of contract unexpected.");
+
+			if (!ContractParameters.TryGetValue("InitialDueDate", out Obj) || !(Obj is DateTime InitialDueDate) || InitialDueDate.Subtract(ExpectedInitialDueDate).TotalDays > 1)
+				return new PaymentResult("Initial due date of contract unexpected.");
+
+			if (!ContractParameters.TryGetValue("Installments", out Obj) || !(Obj is decimal Installments) || Installments < 1 || Installments > MaxInstallments || Installments != Math.Floor(Installments))
+				return new PaymentResult("Number of installments of contract unexpected.");
 
 			if (!ContractParameters.TryGetValue("ContractId", out Obj) || !(Obj is string ContractId))
 				ContractId = null;
 
-			Invoice Invoice = new Invoice()
+			decimal Price = Math.Ceiling(Amount * (100 + PeriodInterest) / 100);
+
+			if (AsPerson)
+				Price = await ServiceConfiguration.IncrementPersonalDebt(Price, PI.Jid, PI.PersonalNumber, PI.Country);
+			else
+				Price = await ServiceConfiguration.IncrementOrganizationalDebt(Price, PI.OrganizationNumber, PI.OrganizationCountry, PI.PersonalNumber, PI.Country);
+
+			int NrInstallments = (int)Math.Ceiling(Installments);
+			int Installment;
+			decimal AmountLeft = Price;
+			DateTime DueDate = InitialDueDate;
+
+			for (Installment = 1; Installment <= NrInstallments; Installment++)
 			{
-				InvoiceNumber = await RuntimeCounters.IncrementCounter(NeuroCreditsServiceProvider.ServiceId + ".NrInvoices"),
-				Account = XmppClient.GetAccount(PI.Jid),
-				IsPaid = false,
-				Amount = Amount,
-				Currency = Currency,
-				DueDate = DueDate,
-				DueInterest = Configuration.DueInterest,
-				Created = DateTime.UtcNow,
-				Paid = DateTime.MinValue,
-				NeuroCreditsContractId = ContractId,
-				CancellationContractId = null,
-				ExternalReference = null,
-				FirstName = PI.FirstName,
-				MiddleName = PI.MiddleName,
-				LastName = PI.LastName,
-				PersonalNumber = PI.PersonalNumber,
-				Address = PI.Address,
-				Address2 = PI.Address2,
-				Area = PI.Area,
-				City = PI.City,
-				PostalCode = PI.PostalCode,
-				Region = PI.Region,
-				Country = PI.Country,
-				Jid = PI.Jid,
-				PhoneNumber = PI.PhoneNumber,
-				OrganizationName = PI.OrganizationName,
-				Department = PI.Department,
-				Role = PI.Role,
-				OrganizationNumber = PI.OrganizationNumber,
-				OrganizationAddress = PI.OrganizationAddress,
-				OrganizationAddress2 = PI.OrganizationAddress2,
-				OrganizationArea = PI.OrganizationArea,
-				OrganizationCity = PI.OrganizationCity,
-				OrganizationPostalCode = PI.OrganizationPostalCode,
-				OrganizationRegion = PI.OrganizationRegion,
-				OrganizationCountry = PI.OrganizationCountry
-			};
+				decimal InstallmentAmount = Math.Ceiling(AmountLeft / (NrInstallments - Installment + 1));
+				AmountLeft -= InstallmentAmount;
+				AmountLeft = Math.Ceiling(AmountLeft * (100 + PeriodInterest) * 0.01M);
 
-			await Database.Insert(Invoice);
+				Invoice Invoice = new Invoice()
+				{
+					InvoiceNumber = await RuntimeCounters.IncrementCounter(NeuroCreditsServiceProvider.ServiceId + ".NrInvoices"),
+					Installment = Installment,
+					Account = XmppClient.GetAccount(PI.Jid),
+					IsPaid = false,
+					Amount = Installment,
+					LateFees = 0,
+					NrReminders = 0,
+					Currency = Currency,
+					DueDate = DueDate,
+					Period = Period,
+					PeriodInterest = PeriodInterest,
+					Created = DateTime.UtcNow,
+					Paid = DateTime.MinValue,
+					InvoiceDate = DateTime.MinValue,
+					LastReminder = DateTime.MinValue,
+					NeuroCreditsContractId = ContractId,
+					CancellationContractId = null,
+					ExternalReference = null,
+					FirstName = PI.FirstName,
+					MiddleName = PI.MiddleName,
+					LastName = PI.LastName,
+					PersonalNumber = PI.PersonalNumber,
+					Address = PI.Address,
+					Address2 = PI.Address2,
+					Area = PI.Area,
+					City = PI.City,
+					PostalCode = PI.PostalCode,
+					Region = PI.Region,
+					Country = PI.Country,
+					Jid = PI.Jid,
+					PhoneNumber = PI.PhoneNumber,
+					OrganizationName = PI.OrganizationName,
+					Department = PI.Department,
+					Role = PI.Role,
+					OrganizationNumber = PI.OrganizationNumber,
+					OrganizationAddress = PI.OrganizationAddress,
+					OrganizationAddress2 = PI.OrganizationAddress2,
+					OrganizationArea = PI.OrganizationArea,
+					OrganizationCity = PI.OrganizationCity,
+					OrganizationPostalCode = PI.OrganizationPostalCode,
+					OrganizationRegion = PI.OrganizationRegion,
+					OrganizationCountry = PI.OrganizationCountry
+				};
 
-			Log.Notice("Neuro-Credits™ bought.", Invoice.InvoiceNumber.ToString(), Invoice.Account, "InvoiceCreated", Invoice.GetTags());
+				await Database.Insert(Invoice);
+
+				Log.Notice("Neuro-Credits™ bought.", Invoice.InvoiceNumber.ToString(), Invoice.Account, "InvoiceCreated", Invoice.GetTags());
+
+				DueDate += Period;
+			}
 
 			return new PaymentResult(Amount, Currency);
 		}
@@ -296,17 +335,19 @@ namespace TAG.Payments.NeuroCredits
 				return new IDictionary<CaseInsensitiveString, object>[0];
 
 			string WalletCurrency = await ServiceConfiguration.GetCurrencyOfAccount(AccountName);
-			double MaxAmount = await MaxCreditAmountAuthorized(PI, Configuration, WalletCurrency);
+			decimal MaxAmount = await MaxCreditAmountAuthorized(PI, Configuration, WalletCurrency);
 
 			return new IDictionary<CaseInsensitiveString, object>[]
 			{
 				new Dictionary<CaseInsensitiveString, object>()
 				{
+					{ "Period", Configuration.Period.ToString() },
+					{ "PeriodInterest", Configuration.PeriodInterest },
 					{ "Max(Amount)", MaxAmount },
-					{ "Min(DueDays)", Configuration.DueDays },
-					{ "Max(DueDays)", Configuration.DueDays },
-					{ "Min(DueInterest)", Configuration.DueInterest },
-					{ "Max(DueInterest)", Configuration.DueInterest }
+					{ "Min(Period)", Configuration.Period },
+					{ "Max(Period)", Configuration.Period },
+					{ "Min(PeriodInterest)", Configuration.PeriodInterest },
+					{ "Max(PeriodInterest)", Configuration.PeriodInterest }
 				}
 			};
 		}
@@ -526,20 +567,52 @@ namespace TAG.Payments.NeuroCredits
 			decimal MaxAmount = await ServiceConfiguration.CurrentPersonalDebt(PI.Jid, PI.PersonalNumber, PI.Country);
 			string Currency = await ServiceConfiguration.GetCurrencyOfAccount(AccountName);
 
-			Invoice MatchingInvoice = await Database.FindFirstIgnoreRest<Invoice>(new FilterAnd(
+			IEnumerable<Invoice> PendingInvoices = await Database.Find<Invoice>(new FilterAnd(
 				new FilterFieldEqualTo("Account", AccountName),
 				new FilterFieldEqualTo("IsPaid", false),
 				new FilterFieldEqualTo("Currency", Currency)));
 
-			Dictionary<CaseInsensitiveString, object> Options = new Dictionary<CaseInsensitiveString, object>()
+			decimal MinAmount = MaxAmount;
+
+			foreach (Invoice Invoice in PendingInvoices)
 			{
-				{ "Max(Amount)", MaxAmount }
+				if (Invoice.Amount < MinAmount)
+					MinAmount = Invoice.Amount;
+			}
+
+			if (MinAmount > MaxAmount)
+				return new IDictionary<CaseInsensitiveString, object>[0];
+
+			Dictionary<decimal, bool> PrimaryKeys = new Dictionary<decimal, bool>()
+			{
+				{ MaxAmount, true }
+			};
+			List<Dictionary<CaseInsensitiveString, object>> Options = new List<Dictionary<CaseInsensitiveString, object>>()
+			{
+				new Dictionary<CaseInsensitiveString, object>()
+				{
+					{ "Amount", MaxAmount },
+					{ "Max(Amount)", MaxAmount },
+					{ "Min(Amount)", MinAmount }
+				}
 			};
 
-			if (!(MatchingInvoice is null))
-				Options["Amount"] = MatchingInvoice.Amount; // TODO: Take due into account.
+			foreach (Invoice Invoice in PendingInvoices)
+			{
+				if (PrimaryKeys.ContainsKey(Invoice.Amount))
+					continue;
 
-			return new IDictionary<CaseInsensitiveString, object>[] { Options };
+				PrimaryKeys[Invoice.Amount] = true;
+
+				Options.Add(new Dictionary<CaseInsensitiveString, object>()
+				{
+					{ "Amount", Invoice.Amount },
+					{ "Max(Amount)", MaxAmount },
+					{ "Min(Amount)", MinAmount }
+				});
+			}
+
+			return Options.ToArray();
 		}
 
 		#endregion
