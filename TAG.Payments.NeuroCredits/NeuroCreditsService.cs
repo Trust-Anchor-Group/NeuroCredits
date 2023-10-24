@@ -335,7 +335,7 @@ namespace TAG.Payments.NeuroCredits
 				return new IDictionary<CaseInsensitiveString, object>[0];
 
 			string WalletCurrency = await ServiceConfiguration.GetCurrencyOfAccount(AccountName);
-			decimal MaxAmount = await MaxCreditAmountAuthorized(PI, Configuration, WalletCurrency);
+			(decimal MaxAmount, _, _, _) = await MaxCreditAmountAuthorized(PI, Configuration, WalletCurrency);
 
 			return new IDictionary<CaseInsensitiveString, object>[]
 			{
