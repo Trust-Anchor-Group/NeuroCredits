@@ -11,8 +11,11 @@
 			<Content fileName="Settings.md"/>
 			<Folder name="Api">
 				<Content fileName="DeleteAccount.ws"/>
+				<Content fileName="DeleteOrganization.ws"/>
 				<Content fileName="EditAccount.ws"/>
+				<Content fileName="EditOrganization.ws"/>
 				<Content fileName="GetAccountDebt.ws"/>
+				<Content fileName="GetOrganizationDebt.ws"/>
 			</Folder>
 		</Folder>
 	</Folder>

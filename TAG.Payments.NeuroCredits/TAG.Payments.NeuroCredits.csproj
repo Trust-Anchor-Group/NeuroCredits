@@ -7,8 +7,11 @@
   <ItemGroup>
     <None Remove="Root\NeuroCredits\Accounts.md" />
     <None Remove="Root\NeuroCredits\Api\DeleteAccount.ws" />
+    <None Remove="Root\NeuroCredits\Api\DeleteOrganization.ws" />
     <None Remove="Root\NeuroCredits\Api\EditAccount.ws" />
+    <None Remove="Root\NeuroCredits\Api\EditOrganization.ws" />
     <None Remove="Root\NeuroCredits\Api\GetAccountDebt.ws" />
+    <None Remove="Root\NeuroCredits\Api\GetOrganizationDebt.ws" />
     <None Remove="Root\NeuroCredits\Logo.png" />
     <None Remove="Root\NeuroCredits\Organizations.md" />
     <None Remove="Root\NeuroCredits\Settings.js" />
@@ -17,7 +20,16 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="Root\NeuroCredits\Api\DeleteOrganization.ws">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Root\NeuroCredits\Api\DeleteAccount.ws">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Root\NeuroCredits\Api\EditOrganization.ws">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Root\NeuroCredits\Api\GetOrganizationDebt.ws">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Root\NeuroCredits\Api\GetAccountDebt.ws">

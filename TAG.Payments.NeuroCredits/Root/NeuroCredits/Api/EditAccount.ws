@@ -5,9 +5,9 @@ Authorize(User,"Admin.Payments.NeuroCredits");
 	"ObjectId":Optional(Str(PObjectId)),
 	"Account":Required(Str(PAccount)),
 	"PNr":Required(Str(PPNr)),
-	"Country":Required(Str(PCountry) like "[A-Z]{2}"),
+	"Country":Required(Str(PCountry) like "^[A-Z]{2}$"),
 	"Amount":Required(Num(PAmount) >= 0),
-	"Currency":Required(Str(PCurrency) like "[A-Z]{3}"),
+	"Currency":Required(Str(PCurrency) like "^[A-Z]{3}$"),
 	"Period":Required(Duration(PPeriod)),
 	"PeriodInterest":Required(Num(PPeriodInterest) >= 0),
 	"MaxInstallments":Required(1 <= Int(PMaxInstallments) <= 12)

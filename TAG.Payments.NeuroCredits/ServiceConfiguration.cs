@@ -9,6 +9,7 @@ using Waher.Runtime.Counters;
 using Waher.Content;
 using TAG.Payments.NeuroCredits.Data;
 using System;
+using Waher.Runtime.Counters.CounterObjects;
 
 namespace TAG.Payments.NeuroCredits
 {
@@ -379,10 +380,35 @@ namespace TAG.Payments.NeuroCredits
 			return (Amount, Configuration);
 		}
 
+		private static string OrganizationDebtKeyPrefix(string OrganizationNumber, string OrganizationCountry)
+		{
+			return NeuroCreditsServiceProvider.ServiceId + ".Organization." + OrganizationCountry + "." + OrganizationNumber + ".";
+		}
+
 		private static string OrganizationDebtKey(string OrganizationNumber, string OrganizationCountry, string PersonalNumber, string PersonCountry)
 		{
-			return NeuroCreditsServiceProvider.ServiceId + ".Organization." + OrganizationCountry + "." + OrganizationNumber +
-				"." + PersonCountry + "." + PersonalNumber;
+			return OrganizationDebtKeyPrefix(OrganizationCountry, OrganizationNumber) + PersonCountry + "." + PersonalNumber;
+		}
+
+		/// <summary>
+		/// Gets the current organization debt.
+		/// </summary>
+		/// <param name="OrganizationNumber">Organization number.</param>
+		/// <param name="OrganizationCountry">Country of organization.</param>
+		/// <param name="PersonalNumber">Personal number of person representing the organization.</param>
+		/// <param name="PersonCountry">Country of person.</param>
+		/// <returns>Current personal debt, using the default currency of the broker.</returns>
+		public static async Task<decimal> CurrentOrganizationDebt(string OrganizationNumber, string OrganizationCountry)
+		{
+			long CountSum = 0;
+
+			foreach (RuntimeCounter Counter in await Database.Find<RuntimeCounter>(new FilterFieldLikeRegEx("Key",
+				Database.WildcardToRegex(OrganizationDebtKeyPrefix(OrganizationNumber, OrganizationCountry) + "*", "*"))))
+			{
+				CountSum += await RuntimeCounters.GetCount(Counter.Key);	// To get counts not persisted yet
+			}
+
+			return 0.0001M * CountSum;
 		}
 
 		/// <summary>
