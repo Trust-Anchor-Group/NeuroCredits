@@ -272,7 +272,19 @@ namespace TAG.Payments.NeuroCredits
 		/// <returns>Current personal debt, using the default currency of the broker.</returns>
 		public static async Task<decimal> CurrentPersonalDebt(string Jid, string PersonalNumber, string Country)
 		{
-			string Account = XmppClient.GetAccount(Jid);
+			string Account;
+
+			if (Jid.Contains("@"))
+			{
+				string Domain = XmppClient.GetDomain(Jid);
+				if (!Gateway.IsDomain(Domain, true))
+					return 0;
+
+				Account = XmppClient.GetAccount(Jid);
+			}
+			else
+				Account = Jid;
+
 			long Count = await RuntimeCounters.GetCount(PersonalDebtKey(Account, PersonalNumber, Country));
 
 			return 0.0001M * Count;

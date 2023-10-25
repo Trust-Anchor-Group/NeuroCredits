@@ -1,8 +1,9 @@
 ﻿Title: Neuro-Credits™ settings
-Description: Configures the Neuro-Credits™ service.
+Description: General settings for the Neuro-Credits™ service.
 Date: 2023-10-19
 Author: Peter Waher
 Master: /Master.md
+Javascript: Settings.js
 Cache-Control: max-age=0, no-cache, no-store
 UserVariable: User
 Privilege: Admin.Payments.NeuroCredits
@@ -10,9 +11,18 @@ Login: /Login.md
 
 ========================================================================
 
-<fieldset>
-<legend>General settings</legend>
+General Settings
+====================
+
+Below you can edit the **default** settings of the Neuro-Credits™ service. These settings will be used if no specific individual or organizational
+settings are available. You can access individual account or organizational on separate pages:
+
+<button type="button" class="posButton" onclick="OpenUrl('Accounts.md')">Account Settings...</button>
+<button type="button" class="posButton" onclick="OpenUrl('Organizations.md')">Organization Settings...</button>
+
 <form action="Settings.md" method="post">
+<fieldset>
+<legend>General Settings</legend>
 
 {{
 if exists(Posted) then
@@ -84,43 +94,5 @@ Who can use the service:
 </p>
 
 <button type="submit" class="posButton">Apply</button>
+</fieldset>
 </form>
-</fieldset>
-
-<fieldset id="IndividualAuthorizations">
-<legend>Individual authorizations</legend>
-
-| Account | Personal Number | Country | Amount | Currency |   |   |
-|:--------|:----------------|:--------|-------:|:---------|:-:|:-:|
-{{
-RS:=select Key, Value from "Settings" where Key like "TAG.Payments.NeuroCredits.Accounts.%";
-foreach x in RS do
-(
-	if x[0] like "TAG\.Payments\.NeuroCredits\.Accounts\.(?'Account'[^\\.]+)\.(?'Country'[^\\.]+)\.(?'PNr'[^\\.]+)" then
-		]]| `((Account))` | ((PNr)) | ((Country)) | ((X[1])) | ((TAG.Payments.NeuroCredits.ServiceConfiguration.GetCurrencyOfAccount(Account);)) | <button type="button" class="posButtonSm" data-account="((Account))" onclick="EditAccount(this)">Edit</button> | <button type="button" class="negButtonSm" data-account="((Account))" onclick="DeleteAccount(this)">Delete</button> |
-[[
-)
-}}
-
-<button type="button" class="posButton" onclick="AddAccount()">Add Account</button>
-
-</fieldset>
-
-<fieldset id="OrganizationAuthorizations">
-<legend>Organizational authorizations</legend>
-
-| Organization Number | Country | Personal Number | Country | Amount | Currency |   |   |
-|:--------------------|:--------|:----------------|:--------|-------:|:---------|:-:|:-:|
-{{
-RS:=select Key, Value from "Settings" where Key like "TAG.Payments.NeuroCredits.Organization.%";
-foreach x in RS do
-(
-	if x[0] like "TAG\.Payments\.NeuroCredits\.Organization\.(?'OrgCountry'[^\\.]+)\.(?'OrgNr'[^\\.]+)\.(?'Country'[^\\.]+)\.(?'PNr'[^\\.]+)" then
-		]]| ((OrgNr)) | ((OrgCountry)) | ((PNr)) | ((Country)) | ((X[1])) | ((TAG.Payments.NeuroCredits.ServiceConfiguration.DefaultCurrency();)) | <button type="button" class="posButtonSm" data-orgnr="((OrgNr))" onclick="EditOrganization(this)">Edit</button> | <button type="button" class="negButtonSm" data-orgnr="((OrgNr))" onclick="DeleteOrganization(this)">Delete</button> |
-[[
-)
-}}
-
-<button type="button" class="posButton" onclick="AddOrganization()">Add Organization</button>
-
-</fieldset>

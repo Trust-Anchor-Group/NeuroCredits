@@ -1,5 +1,6 @@
 ﻿using System;
 using Waher.Content;
+using Waher.Persistence;
 using Waher.Persistence.Attributes;
 
 namespace TAG.Payments.NeuroCredits.Data
@@ -59,9 +60,24 @@ namespace TAG.Payments.NeuroCredits.Data
 		public decimal MaxCredit { get; set; }
 
 		/// <summary>
+		/// Currency of <see cref="MaxCredit"/>.
+		/// </summary>
+		public CaseInsensitiveString Currency { get; set; }
+
+		/// <summary>
 		/// Invoices must be paid within this period.
 		/// </summary>
 		public Duration Period { get; set; }
+
+		/// <summary>
+		/// After the due date, this interest rate will be added to the debt.
+		/// </summary>
+		public decimal PeriodInterest { get; set; }
+
+		/// <summary>
+		/// Number of installments.
+		/// </summary>
+		public int MaxInstallments { get; set; }
 
 		/// <summary>
 		/// When record was created.
@@ -72,24 +88,5 @@ namespace TAG.Payments.NeuroCredits.Data
 		/// When record was created.
 		/// </summary>
 		public DateTime Updated { get; set; }
-
-		/// <summary>
-		/// After the due date, this interest rate will be added to the debt.
-		/// </summary>
-		public decimal PeriodInterest
-		{
-			get;
-			private set;
-		}
-
-		/// <summary>
-		/// Number of installments.
-		/// </summary>
-		public int MaxInstallments
-		{
-			get;
-			private set;
-		}
-
 	}
 }

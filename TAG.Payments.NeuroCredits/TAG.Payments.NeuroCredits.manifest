@@ -3,9 +3,17 @@
 	<Assembly fileName="TAG.Payments.NeuroCredits.dll"/>
 	<Folder name="Root">
 		<Folder name="NeuroCredits">
+			<Content fileName="Accounts.md"/>
 			<Content fileName="Logo.png"/>
+			<Content fileName="Organizations.md"/>
 			<Content fileName="Settings.js"/>
 			<Content fileName="Settings.md"/>
+			<Content fileName="Settings.md"/>
+			<Folder name="Api">
+				<Content fileName="DeleteAccount.ws"/>
+				<Content fileName="EditAccount.ws"/>
+				<Content fileName="GetAccountDebt.ws"/>
+			</Folder>
 		</Folder>
 	</Folder>
 </Module>
