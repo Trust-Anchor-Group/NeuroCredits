@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Waher.Content;
 using Waher.Persistence;
 using Waher.Persistence.Attributes;
@@ -103,6 +102,11 @@ namespace TAG.Payments.NeuroCredits.Data
 		/// Installment number.
 		/// </summary>
 		public int Installment { get; set; }
+
+		/// <summary>
+		/// Number of installments made for credit.
+		/// </summary>
+		public int NrInstallments { get; set; }
 
 		/// <summary>
 		/// When invoice was created
@@ -281,8 +285,14 @@ namespace TAG.Payments.NeuroCredits.Data
 				new KeyValuePair<string, object>("Created", this.Created)
 			};
 
+			if (this.NrInstallments > 1)
+			{
+				Result.Add(new KeyValuePair<string, object>("Installment", this.Installment));
+				Result.Add(new KeyValuePair<string, object>("NrInstallments", this.NrInstallments));
+			}
+
 			if (this.Paid > DateTime.MinValue)
-				Result.Add(new KeyValuePair<string, object>("Paid", this.Paid)); 
+				Result.Add(new KeyValuePair<string, object>("Paid", this.Paid));
 
 			if (!string.IsNullOrEmpty(this.NeuroCreditsContractId)) 
 				Result.Add(new KeyValuePair<string, object>("NeuroCreditsContractId", this.NeuroCreditsContractId));

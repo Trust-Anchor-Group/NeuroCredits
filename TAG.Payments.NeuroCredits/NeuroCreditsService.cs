@@ -279,9 +279,10 @@ namespace TAG.Payments.NeuroCredits
 				{
 					InvoiceNumber = await RuntimeCounters.IncrementCounter(NeuroCreditsServiceProvider.ServiceId + ".NrInvoices"),
 					Installment = Installment,
+					NrInstallments = NrInstallments,
 					Account = XmppClient.GetAccount(PI.Jid),
 					IsPaid = false,
-					Amount = Installment,
+					Amount = InstallmentAmount,
 					LateFees = 0,
 					NrReminders = 0,
 					Currency = Currency,
@@ -364,7 +365,7 @@ namespace TAG.Payments.NeuroCredits
 			{
 				new Dictionary<CaseInsensitiveString, object>()
 				{
-					{ "Period", Details.Period.ToString() },
+					{ "Period", Details.Period },
 					{ "PeriodInterest", Details.PeriodInterest },
 					{ "Max(Amount)", Details.MaxCredit },
 					{ "Min(Period)", Details.Period },
@@ -372,6 +373,9 @@ namespace TAG.Payments.NeuroCredits
 					{ "Min(PeriodInterest)", Details.PeriodInterest },
 					{ "Max(PeriodInterest)", Details.PeriodInterest },
 					{ "Currency", Details.Currency },
+					{ "Min(Currency)", Details.Currency },
+					{ "Max(Currency)", Details.Currency },
+					{ "Installments", 1 },
 					{ "Max(Installments)", Details.MaxInstallments }
 				}
 			};
@@ -580,7 +584,9 @@ namespace TAG.Payments.NeuroCredits
 				{
 					{ "Amount", MaxAmount },
 					{ "Max(Amount)", MaxAmount },
-					{ "Currency", Currency }
+					{ "Currency", Currency },
+					{ "Min(Currency)", Currency },
+					{ "Max(Currency)", Currency }
 				}
 			};
 		}
