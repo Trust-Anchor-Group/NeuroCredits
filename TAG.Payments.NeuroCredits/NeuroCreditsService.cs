@@ -124,9 +124,9 @@ namespace TAG.Payments.NeuroCredits
 			PersonalInformation PI = new PersonalInformation(ID);
 			string WalletCurrency = await ServiceConfiguration.GetCurrencyOfAccount(AccountName);
 
-			(decimal Amount, _, _, _) = await MaxCreditAmountAuthorized(PI, Configuration, WalletCurrency);
+			CreditDetails Details = await MaxCreditAmountAuthorized(PI, Configuration, WalletCurrency);
 
-			return Amount > 0;
+			return Details.HasCredit;
 		}
 
 		private static async Task<GenericObject> GetLegalID(CaseInsensitiveString AccountName)
@@ -150,30 +150,57 @@ namespace TAG.Payments.NeuroCredits
 		/// <param name="PI">Personal Information about account.</param>
 		/// <param name="Configuration">Current configuration.</param>
 		/// <param name="Currency">Currency</param>
-		/// <returns>Amount of Neuro-Credits™ authorized.</returns>
-		internal static async Task<(decimal, bool, AccountConfiguration, OrganizationConfiguration)> MaxCreditAmountAuthorized(PersonalInformation PI, ServiceConfiguration Configuration, string Currency)
+		/// <returns>Credit details.</returns>
+		internal static async Task<CreditDetails> MaxCreditAmountAuthorized(PersonalInformation PI, ServiceConfiguration Configuration, string Currency)
 		{
 			AccountConfiguration AccountConfiguration;
 			OrganizationConfiguration OrganizationConfiguration;
 			decimal MaxAmount;
+			decimal CurrentDebt;
 
 			if (Configuration.AllowOrganizations && PI.HasOrganizationalBillingInformation)
 			{
-				(MaxAmount, OrganizationConfiguration) = await Configuration.IsOrganizationAuthorized(PI.Jid, PI.OrganizationNumber, PI.OrganizationCountry,
+				(MaxAmount, CurrentDebt, OrganizationConfiguration) = await Configuration.IsOrganizationAuthorized(PI.Jid, PI.OrganizationNumber, PI.OrganizationCountry,
 					PI.PersonalNumber, PI.Country, Currency);
 
 				if (MaxAmount > 0)
-					return (MaxAmount, false, null, OrganizationConfiguration);
+				{
+					return new CreditDetails()
+					{
+						HasCredit = true,
+						AccountConfiguration = null,
+						OrganizationConfiguration = OrganizationConfiguration,
+						Configuration = Configuration,
+						Currency = Currency,
+						MaxCredit = MaxAmount,
+						Debt = CurrentDebt
+					};
+				}
 			}
 
 			if (Configuration.AllowPrivatePersons && PI.HasPersonalBillingInformation)
 			{
-				(MaxAmount, AccountConfiguration) = await Configuration.IsPersonAuthorized(PI.Jid, PI.PersonalNumber, PI.Country, Currency);
+				(MaxAmount, CurrentDebt, AccountConfiguration) = await Configuration.IsPersonAuthorized(PI.Jid, PI.PersonalNumber, PI.Country, Currency);
 				if (MaxAmount > 0)
-					return (MaxAmount, true, AccountConfiguration, null);
+				{
+					return new CreditDetails()
+					{
+						HasCredit = true,
+						AccountConfiguration = AccountConfiguration,
+						OrganizationConfiguration = null,
+						Configuration = Configuration,
+						Currency = Currency,
+						MaxCredit = MaxAmount,
+						Debt = CurrentDebt
+					};
+				}
 			}
 
-			return (0, false, null, null);
+			return new CreditDetails()
+			{
+				HasCredit = false,
+				Configuration = Configuration
+			};
 		}
 
 		/// <summary>
@@ -204,19 +231,18 @@ namespace TAG.Payments.NeuroCredits
 				return new PaymentResult("Neuro-Credits™ service not configured properly.");
 
 			PersonalInformation PI = new PersonalInformation(IdentityProperties);
-			(decimal MaxAmount, bool AsPerson, AccountConfiguration AccountConfiguration, OrganizationConfiguration OrganizationConfiguration) =
-				await MaxCreditAmountAuthorized(PI, Configuration, Currency);
+			CreditDetails Details = await MaxCreditAmountAuthorized(PI, Configuration, Currency);
 
-			if (MaxAmount <= 0)
+			if (!Details.HasCredit)
 				return new PaymentResult("Not authorized to buy Neuro-Credits™. Contact your operator to receive authorization to buy Neuro-Credits™. If there are outstanding payments, you might need to cleared those first.");
 
-			if (Amount > MaxAmount)
+			if (Amount > Details.MaxCredit)
 				return new PaymentResult("Amount exceeds maximum allowed amount.");
 
-			Duration ExpectedPeriod = OrganizationConfiguration?.Period ?? AccountConfiguration?.Period ?? Configuration.Period;
-			decimal ExpectedPeriodInterest = OrganizationConfiguration?.PeriodInterest ?? AccountConfiguration?.PeriodInterest ?? Configuration.PeriodInterest;
-			DateTime ExpectedInitialDueDate = DateTime.Today.AddDays(1) + Configuration.Period;
-			decimal MaxInstallments = OrganizationConfiguration?.MaxInstallments ?? AccountConfiguration?.MaxInstallments ?? Configuration.MaxInstallments;
+			Duration ExpectedPeriod = Details.Period;
+			decimal ExpectedPeriodInterest = Details.PeriodInterest;
+			DateTime ExpectedInitialDueDate = Details.InitialDueDate;
+			decimal MaxInstallments = Details.MaxInstallments;
 
 			if (!ContractParameters.TryGetValue("Period", out object Obj) || !(Obj is Duration Period) || Period != ExpectedPeriod)
 				return new PaymentResult("Period of contract unexpected.");
@@ -235,7 +261,7 @@ namespace TAG.Payments.NeuroCredits
 
 			decimal Price = Math.Ceiling(Amount * (100 + PeriodInterest) / 100);
 
-			if (AsPerson)
+			if (Details.PersonalCredit)
 				Price = await ServiceConfiguration.IncrementPersonalDebt(Price, PI.Jid, PI.PersonalNumber, PI.Country);
 			else
 				Price = await ServiceConfiguration.IncrementOrganizationalDebt(Price, PI.OrganizationNumber, PI.OrganizationCountry, PI.PersonalNumber, PI.Country);
@@ -334,19 +360,19 @@ namespace TAG.Payments.NeuroCredits
 				return new IDictionary<CaseInsensitiveString, object>[0];
 
 			string WalletCurrency = await ServiceConfiguration.GetCurrencyOfAccount(AccountName);
-			(decimal MaxAmount, _, _, _) = await MaxCreditAmountAuthorized(PI, Configuration, WalletCurrency);
+			CreditDetails Details = await MaxCreditAmountAuthorized(PI, Configuration, WalletCurrency);
 
 			return new IDictionary<CaseInsensitiveString, object>[]
 			{
 				new Dictionary<CaseInsensitiveString, object>()
 				{
-					{ "Period", Configuration.Period.ToString() },
-					{ "PeriodInterest", Configuration.PeriodInterest },
-					{ "Max(Amount)", MaxAmount },
-					{ "Min(Period)", Configuration.Period },
-					{ "Max(Period)", Configuration.Period },
-					{ "Min(PeriodInterest)", Configuration.PeriodInterest },
-					{ "Max(PeriodInterest)", Configuration.PeriodInterest }
+					{ "Period", Details.Period.ToString() },
+					{ "PeriodInterest", Details.PeriodInterest },
+					{ "Max(Amount)", Details.MaxCredit },
+					{ "Min(Period)", Details.Period },
+					{ "Max(Period)", Details.Period },
+					{ "Min(PeriodInterest)", Details.PeriodInterest },
+					{ "Max(PeriodInterest)", Details.PeriodInterest }
 				}
 			};
 		}

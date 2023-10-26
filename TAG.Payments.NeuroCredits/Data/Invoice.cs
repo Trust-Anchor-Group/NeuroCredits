@@ -61,6 +61,11 @@ namespace TAG.Payments.NeuroCredits.Data
 		public decimal LateFees { get; set; }
 
 		/// <summary>
+		/// Total amount (<see cref="Amount"/> + <see cref="LateFees"/>).
+		/// </summary>
+		public decimal TotalAmount => this.Amount + this.LateFees;
+
+		/// <summary>
 		/// Number of reminders sent.
 		/// </summary>
 		public int NrReminders { get; set; }

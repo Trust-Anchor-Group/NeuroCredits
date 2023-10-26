@@ -221,26 +221,26 @@ namespace TAG.Payments.NeuroCredits
 		/// <param name="PersonalNumber">Personal number of account.</param>
 		/// <param name="Country">Country of person</param>
 		/// <param name="Currency">Currency</param>
-		/// <returns>Amount authorized, using the default currency of the broker.</returns>
-		public async Task<(decimal, AccountConfiguration)> IsPersonAuthorized(string Jid, string PersonalNumber, string Country, string Currency)
+		/// <returns>Amount left authorized, current debt, using the default currency of the broker.</returns>
+		public async Task<(decimal, decimal, AccountConfiguration)> IsPersonAuthorized(string Jid, string PersonalNumber, string Country, string Currency)
 		{
 			if (string.IsNullOrEmpty(Jid) || string.IsNullOrEmpty(PersonalNumber))
-				return (0, null);
+				return (0, 0, null);
 
 			string Domain = XmppClient.GetDomain(Jid);
 			if (!string.IsNullOrEmpty(Domain) && !Gateway.IsDomain(Domain, true))
-				return (0, null);
+				return (0, 0, null);
 
 			if (!this.SupportsCountry(Country))
-				return (0, null);
+				return (0, 0, null);
 
 			if (!this.SupportsCurrency(Currency))
-				return (0, null);
+				return (0, 0, null);
 
 			string Account = XmppClient.GetAccount(Jid);
 			string WalletCurrency = await GetCurrencyOfAccount(Account);
 			if (string.IsNullOrEmpty(WalletCurrency) || WalletCurrency != Currency)
-				return (0, null);
+				return (0, 0, null);
 
 			AccountConfiguration Configuration = await Database.FindFirstIgnoreRest<AccountConfiguration>(
 				new FilterFieldEqualTo("Account", Account));
@@ -252,7 +252,7 @@ namespace TAG.Payments.NeuroCredits
 				if (this.AllowPrivatePersons)
 					Amount = this.DefaultMaxPersonalLimit;
 				else
-					return (0, null);
+					return (0, 0, null);
 			}
 			else
 				Amount = Configuration.MaxCredit;
@@ -261,7 +261,7 @@ namespace TAG.Payments.NeuroCredits
 
 			Amount -= CurrentDebt;
 
-			return (Amount, Configuration);
+			return (Amount, CurrentDebt, Configuration);
 		}
 
 		/// <summary>
@@ -325,24 +325,24 @@ namespace TAG.Payments.NeuroCredits
 		/// <param name="PersonalNumber">Personal number of person representing the organization.</param>
 		/// <param name="PersonCountry">Country of person.</param>
 		/// <param name="Currency">Currency</param>
-		/// <returns>Amount authorized, using the default currency of the broker.</returns>
-		public async Task<(decimal, OrganizationConfiguration)> IsOrganizationAuthorized(string Jid, string OrganizationNumber, string OrganizationCountry,
-			string PersonalNumber, string PersonCountry, string Currency)
+		/// <returns>Amount left authorized, current debt, using the default currency of the broker.</returns>
+		public async Task<(decimal, decimal, OrganizationConfiguration)> IsOrganizationAuthorized(string Jid, string OrganizationNumber, 
+			string OrganizationCountry, string PersonalNumber, string PersonCountry, string Currency)
 		{
 			if (string.IsNullOrEmpty(Jid) || string.IsNullOrEmpty(OrganizationNumber) || string.IsNullOrEmpty(PersonalNumber))
-				return (0, null);
+				return (0, 0, null);
 
 			string Domain = XmppClient.GetDomain(Jid);
 			if (!string.IsNullOrEmpty(Domain) && !Gateway.IsDomain(Domain, true))
-				return (0, null);
+				return (0, 0, null);
 
 			if (!this.SupportsCurrency(Currency))
-				return (0, null);
+				return (0, 0, null);
 
 			string Account = XmppClient.GetAccount(Jid);
 			string WalletCurrency = await GetCurrencyOfAccount(Account);
 			if (string.IsNullOrEmpty(WalletCurrency) || WalletCurrency != Currency)
-				return (0, null);
+				return (0, 0, null);
 
 			OrganizationConfiguration Configuration = await Database.FindFirstIgnoreRest<OrganizationConfiguration>(new FilterAnd(
 				new FilterFieldEqualTo("OrganizationNumber", OrganizationNumber),
@@ -355,7 +355,7 @@ namespace TAG.Payments.NeuroCredits
 				if (this.AllowOrganizations)
 					Amount = this.DefaultMaxOrganizationalLimit;
 				else
-					return (0, null);
+					return (0, 0, null);
 			}
 			else
 			{
@@ -366,18 +366,18 @@ namespace TAG.Payments.NeuroCredits
 					int i = Array.IndexOf(Configuration.PersonalNumbers, PersonalNumber);
 
 					if (i < 0 || i >= (Configuration.PersonalCountries?.Length ?? 0))
-						return (0, null);
+						return (0, 0, null);
 
 					if (PersonCountry.ToUpper() != Configuration.PersonalCountries[i].ToUpper())
-						return (0, null);
+						return (0, 0, null);
 				}
 			}
 
-			decimal CurrentDebt = await CurrentOrganizationDebt(OrganizationNumber, OrganizationCountry, PersonalNumber, PersonCountry);
+			decimal CurrentDebt = await CurrentOrganizationDebt(OrganizationNumber, OrganizationCountry);
 
 			Amount -= CurrentDebt;
 
-			return (Amount, Configuration);
+			return (Amount, CurrentDebt, Configuration);
 		}
 
 		private static string OrganizationDebtKeyPrefix(string OrganizationNumber, string OrganizationCountry)
