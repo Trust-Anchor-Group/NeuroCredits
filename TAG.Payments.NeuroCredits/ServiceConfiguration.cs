@@ -257,7 +257,7 @@ namespace TAG.Payments.NeuroCredits
 			else
 				Amount = Configuration.MaxCredit;
 
-			decimal CurrentDebt = await CurrentPersonalDebt(Jid, PersonalNumber, Country);
+			decimal CurrentDebt = await CurrentPersonalDebt(PersonalNumber, Country);
 
 			Amount -= CurrentDebt;
 
@@ -271,47 +271,32 @@ namespace TAG.Payments.NeuroCredits
 		/// <param name="PersonalNumber">Personal number of account.</param>
 		/// <param name="Country">Country of person.</param>
 		/// <returns>Current personal debt, using the default currency of the broker.</returns>
-		public static async Task<decimal> CurrentPersonalDebt(string Jid, string PersonalNumber, string Country)
+		public static async Task<decimal> CurrentPersonalDebt(string PersonalNumber, string Country)
 		{
-			string Account;
-
-			if (Jid.Contains("@"))
-			{
-				string Domain = XmppClient.GetDomain(Jid);
-				if (!Gateway.IsDomain(Domain, true))
-					return 0;
-
-				Account = XmppClient.GetAccount(Jid);
-			}
-			else
-				Account = Jid;
-
-			long Count = await RuntimeCounters.GetCount(PersonalDebtKey(Account, PersonalNumber, Country));
+			long Count = await RuntimeCounters.GetCount(PersonalDebtKey(PersonalNumber, Country));
 
 			return 0.0001M * Count;
 		}
 
-		private static string PersonalDebtKey(string Account, string PersonalNumber, string Country)
+		private static string PersonalDebtKey(string PersonalNumber, string Country)
 		{
-			return NeuroCreditsServiceProvider.ServiceId + ".Accounts." + Account + "." + Country + "." + PersonalNumber;
+			return NeuroCreditsServiceProvider.ServiceId + ".Person." + Country + "." + PersonalNumber;
 		}
 
-		internal static async Task<decimal> IncrementPersonalDebt(decimal Amount, string Jid, string PersonalNumber, string Country)
+		internal static async Task<decimal> IncrementPersonalDebt(decimal Amount, string PersonalNumber, string Country)
 		{
-			string Account = XmppClient.GetAccount(Jid);
 			long CountDelta = (long)(Amount * 10000);
 
-			await RuntimeCounters.IncrementCounter(PersonalDebtKey(Account, PersonalNumber, Country), CountDelta);
+			await RuntimeCounters.IncrementCounter(PersonalDebtKey(PersonalNumber, Country), CountDelta);
 
 			return 0.0001M * CountDelta;
 		}
 
-		internal static async Task<decimal> DecrementPersonalDebt(decimal Amount, string Jid, string PersonalNumber, string Country)
+		internal static async Task<decimal> DecrementPersonalDebt(decimal Amount, string PersonalNumber, string Country)
 		{
-			string Account = XmppClient.GetAccount(Jid);
 			long CountDelta = (long)(Amount * 10000);
 
-			await RuntimeCounters.DecrementCounter(PersonalDebtKey(Account, PersonalNumber, Country), CountDelta);
+			await RuntimeCounters.DecrementCounter(PersonalDebtKey(PersonalNumber, Country), CountDelta);
 
 			return 0.0001M * CountDelta;
 		}
@@ -380,14 +365,9 @@ namespace TAG.Payments.NeuroCredits
 			return (Amount, CurrentDebt, Configuration);
 		}
 
-		private static string OrganizationDebtKeyPrefix(string OrganizationNumber, string OrganizationCountry)
+		private static string OrganizationDebtKey(string OrganizationNumber, string OrganizationCountry)
 		{
-			return NeuroCreditsServiceProvider.ServiceId + ".Organization." + OrganizationCountry + "." + OrganizationNumber + ".";
-		}
-
-		private static string OrganizationDebtKey(string OrganizationNumber, string OrganizationCountry, string PersonalNumber, string PersonCountry)
-		{
-			return OrganizationDebtKeyPrefix(OrganizationCountry, OrganizationNumber) + PersonCountry + "." + PersonalNumber;
+			return NeuroCreditsServiceProvider.ServiceId + ".Organization." + OrganizationCountry + "." + OrganizationNumber;
 		}
 
 		/// <summary>
@@ -395,54 +375,28 @@ namespace TAG.Payments.NeuroCredits
 		/// </summary>
 		/// <param name="OrganizationNumber">Organization number.</param>
 		/// <param name="OrganizationCountry">Country of organization.</param>
-		/// <param name="PersonalNumber">Personal number of person representing the organization.</param>
-		/// <param name="PersonCountry">Country of person.</param>
 		/// <returns>Current personal debt, using the default currency of the broker.</returns>
 		public static async Task<decimal> CurrentOrganizationDebt(string OrganizationNumber, string OrganizationCountry)
 		{
-			long CountSum = 0;
-
-			foreach (RuntimeCounter Counter in await Database.Find<RuntimeCounter>(new FilterFieldLikeRegEx("Key",
-				Database.WildcardToRegex(OrganizationDebtKeyPrefix(OrganizationNumber, OrganizationCountry) + "*", "*"))))
-			{
-				CountSum += await RuntimeCounters.GetCount(Counter.Key);	// To get counts not persisted yet
-			}
-
-			return 0.0001M * CountSum;
-		}
-
-		/// <summary>
-		/// Gets the current organization debt.
-		/// </summary>
-		/// <param name="OrganizationNumber">Organization number.</param>
-		/// <param name="OrganizationCountry">Country of organization.</param>
-		/// <param name="PersonalNumber">Personal number of person representing the organization.</param>
-		/// <param name="PersonCountry">Country of person.</param>
-		/// <returns>Current personal debt, using the default currency of the broker.</returns>
-		public static async Task<decimal> CurrentOrganizationDebt(string OrganizationNumber, string OrganizationCountry,
-			string PersonalNumber, string PersonCountry)
-		{
-			long Count = await RuntimeCounters.GetCount(OrganizationDebtKey(OrganizationNumber, OrganizationCountry, PersonalNumber, PersonCountry));
+			long Count = await RuntimeCounters.GetCount(OrganizationDebtKey(OrganizationNumber, OrganizationCountry));
 
 			return 0.0001M * Count;
 		}
 
-		internal static async Task<decimal> IncrementOrganizationalDebt(decimal Amount, string OrganizationNumber, string OrganizationCountry,
-			string PersonalNumber, string PersonCountry)
+		internal static async Task<decimal> IncrementOrganizationalDebt(decimal Amount, string OrganizationNumber, string OrganizationCountry)
 		{
 			long CountDelta = (long)(Amount * 10000);
 
-			await RuntimeCounters.IncrementCounter(OrganizationDebtKey(OrganizationNumber, OrganizationCountry, PersonalNumber, PersonCountry), CountDelta);
+			await RuntimeCounters.IncrementCounter(OrganizationDebtKey(OrganizationNumber, OrganizationCountry), CountDelta);
 
 			return 0.0001M * CountDelta;
 		}
 
-		internal static async Task<decimal> DecrementOrganizationalDebt(decimal Amount, string OrganizationNumber, string OrganizationCountry,
-			string PersonalNumber, string PersonCountry)
+		internal static async Task<decimal> DecrementOrganizationalDebt(decimal Amount, string OrganizationNumber, string OrganizationCountry)
 		{
 			long CountDelta = (long)(Amount * 10000);
 
-			await RuntimeCounters.DecrementCounter(OrganizationDebtKey(OrganizationNumber, OrganizationCountry, PersonalNumber, PersonCountry), CountDelta);
+			await RuntimeCounters.DecrementCounter(OrganizationDebtKey(OrganizationNumber, OrganizationCountry), CountDelta);
 
 			return 0.0001M * CountDelta;
 		}

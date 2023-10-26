@@ -262,9 +262,9 @@ namespace TAG.Payments.NeuroCredits
 			decimal Price = Math.Ceiling(Amount * (100 + PeriodInterest) / 100);
 
 			if (Details.PersonalCredit)
-				Price = await ServiceConfiguration.IncrementPersonalDebt(Price, PI.Jid, PI.PersonalNumber, PI.Country);
+				Price = await ServiceConfiguration.IncrementPersonalDebt(Price, PI.PersonalNumber, PI.Country);
 			else
-				Price = await ServiceConfiguration.IncrementOrganizationalDebt(Price, PI.OrganizationNumber, PI.OrganizationCountry, PI.PersonalNumber, PI.Country);
+				Price = await ServiceConfiguration.IncrementOrganizationalDebt(Price, PI.OrganizationNumber, PI.OrganizationCountry);
 
 			int NrInstallments = (int)Math.Ceiling(Installments);
 			int Installment;
@@ -411,7 +411,7 @@ namespace TAG.Payments.NeuroCredits
 
 			PersonalInformation PI = new PersonalInformation(ID);
 
-			return await ServiceConfiguration.CurrentPersonalDebt(PI.Jid, PI.PersonalNumber, PI.Country) > 0;
+			return await ServiceConfiguration.CurrentPersonalDebt(PI.PersonalNumber, PI.Country) > 0;
 		}
 
 		/// <summary>
@@ -539,7 +539,7 @@ namespace TAG.Payments.NeuroCredits
 				}
 			}
 
-			Amount = await ServiceConfiguration.DecrementPersonalDebt(Amount, PI.Jid, PI.PersonalNumber, PI.Country);
+			Amount = await ServiceConfiguration.DecrementPersonalDebt(Amount, PI.PersonalNumber, PI.Country);
 
 			if (!ContractParameters.TryGetValue("ContractId", out object Obj) || !(Obj is string ContractId))
 				ContractId = null;
@@ -589,7 +589,7 @@ namespace TAG.Payments.NeuroCredits
 			if (!string.IsNullOrEmpty(Domain) && !Gateway.IsDomain(Domain, true))
 				return new IDictionary<CaseInsensitiveString, object>[0];
 
-			decimal MaxAmount = await ServiceConfiguration.CurrentPersonalDebt(PI.Jid, PI.PersonalNumber, PI.Country);
+			decimal MaxAmount = await ServiceConfiguration.CurrentPersonalDebt(PI.PersonalNumber, PI.Country);
 			string Currency = await ServiceConfiguration.GetCurrencyOfAccount(AccountName);
 
 			IEnumerable<Invoice> PendingInvoices = await Database.Find<Invoice>(new FilterAnd(
