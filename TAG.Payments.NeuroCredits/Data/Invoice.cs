@@ -14,10 +14,9 @@ namespace TAG.Payments.NeuroCredits.Data
 	[CollectionName("NeuroCreditInvoices")]
 	[TypeName(TypeNameSerialization.None)]
 	[Index("InvoiceNumber")]
-	[Index("InvoiceDate", "InvoiceNumber")]
 	[Index("IsPaid", "DueDate", "InvoiceNumber")]
-	[Index("Account", "IsPaid", "InvoiceNumber")]
-	[Index("Account", "IsPaid", "Amount")]
+	[Index("PersonalNumber", "Country", "IsPaid", "InvoiceNumber")]
+	[Index("OrganizationNumber", "OrganizationCountry", "IsPaid", "InvoiceNumber")]
 	[ObsoleteMethod(nameof(UpgradePropertyValue))]
 	[ArchivingTime(3653)]
 	public class Invoice
@@ -61,9 +60,19 @@ namespace TAG.Payments.NeuroCredits.Data
 		public decimal LateFees { get; set; }
 
 		/// <summary>
+		/// Amount that has been paid.
+		/// </summary>
+		public decimal AmountPaid { get; set; }
+
+		/// <summary>
 		/// Total amount (<see cref="Amount"/> + <see cref="LateFees"/>).
 		/// </summary>
 		public decimal TotalAmount => this.Amount + this.LateFees;
+
+		/// <summary>
+		/// Amount left to pay (<see cref="TotalAmount"/> - <see cref="AmountPaid"/>).
+		/// </summary>
+		public decimal AmountLeft => this.TotalAmount - this.AmountPaid;
 
 		/// <summary>
 		/// Number of reminders sent.
@@ -261,7 +270,10 @@ namespace TAG.Payments.NeuroCredits.Data
 				new KeyValuePair<string, object>("InvoiceNumber", this.InvoiceNumber),
 				new KeyValuePair<string, object>("Account", this.Account),
 				new KeyValuePair<string, object>("IsPaid", this.IsPaid),
-				new KeyValuePair<string, object>("Amount", this.Amount), // TODO: Take due into account in separate tag.
+				new KeyValuePair<string, object>("Amount", this.Amount),
+				new KeyValuePair<string, object>("LateFees", this.LateFees),
+				new KeyValuePair<string, object>("TotalAmount", this.TotalAmount),
+				new KeyValuePair<string, object>("AmountLeft", this.AmountLeft),
 				new KeyValuePair<string, object>("Currency", this.Currency),
 				new KeyValuePair<string, object>("DueDate", this.DueDate),
 				new KeyValuePair<string, object>("Period", this.Period.ToString()),
@@ -270,7 +282,7 @@ namespace TAG.Payments.NeuroCredits.Data
 			};
 
 			if (this.Paid > DateTime.MinValue)
-					Result.Add(new KeyValuePair<string, object>("Paid", this.Paid)); 
+				Result.Add(new KeyValuePair<string, object>("Paid", this.Paid)); 
 
 			if (!string.IsNullOrEmpty(this.NeuroCreditsContractId)) 
 				Result.Add(new KeyValuePair<string, object>("NeuroCreditsContractId", this.NeuroCreditsContractId));

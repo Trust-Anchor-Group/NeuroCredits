@@ -115,8 +115,6 @@ namespace TAG.Payments.NeuroCredits
 			if (!Configuration.IsWellDefined)
 				return false;
 
-			// ID:=select generic top 1 * from "LegalIdentities" where Account=AccountName and State="Approved" order by Created desc;
-
 			GenericObject ID = await GetLegalID(AccountName);
 			if (ID is null)
 				return false;
@@ -261,10 +259,10 @@ namespace TAG.Payments.NeuroCredits
 
 			decimal Price = Math.Ceiling(Amount * (100 + PeriodInterest) / 100);
 
-			if (Details.PersonalCredit)
-				Price = await ServiceConfiguration.IncrementPersonalDebt(Price, PI.PersonalNumber, PI.Country);
-			else
+			if (Details.OrganizationalCredit)
 				Price = await ServiceConfiguration.IncrementOrganizationalDebt(Price, PI.OrganizationNumber, PI.OrganizationCountry);
+			else
+				Price = await ServiceConfiguration.IncrementPersonalDebt(Price, PI.PersonalNumber, PI.Country);
 
 			int NrInstallments = (int)Math.Ceiling(Installments);
 			int Installment;
@@ -372,7 +370,9 @@ namespace TAG.Payments.NeuroCredits
 					{ "Min(Period)", Details.Period },
 					{ "Max(Period)", Details.Period },
 					{ "Min(PeriodInterest)", Details.PeriodInterest },
-					{ "Max(PeriodInterest)", Details.PeriodInterest }
+					{ "Max(PeriodInterest)", Details.PeriodInterest },
+					{ "Currency", Details.Currency },
+					{ "Max(Installments)", Details.MaxInstallments }
 				}
 			};
 		}
@@ -411,7 +411,12 @@ namespace TAG.Payments.NeuroCredits
 
 			PersonalInformation PI = new PersonalInformation(ID);
 
-			return await ServiceConfiguration.CurrentPersonalDebt(PI.PersonalNumber, PI.Country) > 0;
+			decimal Debt = await ServiceConfiguration.CurrentPersonalDebt(PI.PersonalNumber, PI.Country);
+
+			if (PI.HasOrganizationalBillingInformation)
+				Debt += await ServiceConfiguration.CurrentOrganizationDebt(PI.OrganizationNumber, PI.OrganizationCountry);
+
+			return Debt > 0;
 		}
 
 		/// <summary>
@@ -434,112 +439,18 @@ namespace TAG.Payments.NeuroCredits
 			IDictionary<CaseInsensitiveString, CaseInsensitiveString> IdentityProperties,
 			decimal Amount, string Currency, string SuccessUrl, string FailureUrl, string CancelUrl, ClientUrlEventHandler ClientUrlCallback, object State)
 		{
-			if (Amount != Math.Floor(Amount))
-				return new PaymentResult("Only whole amounts of Neuro-Credits™ permitted.");
+			decimal Ticks = Amount * 10000;
+			if (Ticks != Math.Floor(Ticks))
+				return new PaymentResult("Amount contains too many decimals.");
 
 			ServiceConfiguration Configuration = await ServiceConfiguration.GetCurrent();
 			if (!Configuration.IsWellDefined)
 				return new PaymentResult("Neuro-Credits™ service not configured properly.");
 
 			PersonalInformation PI = new PersonalInformation(IdentityProperties);
-			string AccountName = XmppClient.GetAccount(PI.Jid);
-
-			IEnumerable<Invoice> MatchingInvoices;
-			Invoice MatchingInvoice = await Database.FindFirstIgnoreRest<Invoice>(new FilterAnd(
-				new FilterFieldEqualTo("Account", AccountName),
-				new FilterFieldEqualTo("IsPaid", false),
-				new FilterFieldEqualTo("Amount", Amount), // TODO: Take due into account.
-				new FilterFieldEqualTo("Currency", Currency)));
-
-			if (!(MatchingInvoice is null))
-				MatchingInvoices = new Invoice[] { MatchingInvoice };
-			else
-			{
-				List<Invoice> PotentialInvoices = new List<Invoice>();
-				PotentialInvoices.AddRange(await Database.Find<Invoice>(new FilterAnd(
-					new FilterFieldEqualTo("Account", AccountName),
-					new FilterFieldEqualTo("IsPaid", false),
-					new FilterFieldLesserThan("Amount", Amount), // TODO: Take due into account.
-					new FilterFieldEqualTo("Currency", Currency))));
-
-				int NrInvoices = PotentialInvoices.Count;
-				if (NrInvoices > 31)
-					NrInvoices = 31;    // Too many combinations to process.
-
-				MatchingInvoices = null;
-				uint CombinationMax = 1U << NrInvoices;
-				uint i, j;
-				int k;
-
-				for (i = 1; i < CombinationMax; i++)
-				{
-					decimal Sum = 0;
-
-					j = i;
-					k = 0;
-					while (j != 0)
-					{
-						if ((j & 1) != 0)
-							Sum += PotentialInvoices[k].Amount; // TODO: Take due into account.
-
-						k++;
-						j >>= 1;
-					}
-
-					if (Sum == Amount)
-					{
-						List<Invoice> Matches = new List<Invoice>();
-
-						j = i;
-						k = 0;
-						while (j != 0)
-						{
-							if ((j & 1) != 0)
-								Matches.Add(PotentialInvoices[k]);
-
-							k++;
-							j >>= 1;
-						}
-
-						MatchingInvoices = Matches.ToArray();
-						break;
-					}
-				}
-
-				if (MatchingInvoices is null)
-				{
-					IEnumerable<Invoice> ExistingInvoices = await Database.Find<Invoice>(new FilterAnd(
-						new FilterFieldEqualTo("Account", AccountName),
-						new FilterFieldEqualTo("IsPaid", false)));
-
-					StringBuilder sb = new StringBuilder();
-					bool First = true;
-
-					sb.Append("No pending invoice or combination of pending invoices matching that amount was found.");
-
-					foreach (Invoice InvoicePending in ExistingInvoices)
-					{
-						if (First)
-						{
-							First = false;
-							sb.Append(" Pending amounts: ");
-						}
-						else
-							sb.Append(", ");
-
-						sb.Append(CommonTypes.Encode(InvoicePending.Amount)); // TODO: Take due into account.
-						sb.Append(' ');
-						sb.Append(InvoicePending.Currency.Value);
-					}
-
-					if (!First)
-						sb.Append('.');
-
-					return new PaymentResult(sb.ToString());
-				}
-			}
-
-			Amount = await ServiceConfiguration.DecrementPersonalDebt(Amount, PI.PersonalNumber, PI.Country);
+			decimal AmountLeft = Amount;
+			decimal AmountPaid = 0;
+			decimal Paid;
 
 			if (!ContractParameters.TryGetValue("ContractId", out object Obj) || !(Obj is string ContractId))
 				ContractId = null;
@@ -547,20 +458,88 @@ namespace TAG.Payments.NeuroCredits
 			if (!ContractParameters.TryGetValue("Reference", out Obj) || !(Obj is string Reference))
 				Reference = null;
 
-			foreach (Invoice Invoice2 in MatchingInvoices)
+			IEnumerable<Invoice> PersonalUnpaidInvoices = await Database.Find<Invoice>(new FilterAnd(
+				new FilterFieldEqualTo("PersonalNumber", PI.PersonalNumber),
+				new FilterFieldEqualTo("Country", PI.Country),
+				new FilterFieldEqualTo("IsPaid", false),
+				new FilterFieldEqualTo("Currency", Currency)));
+
+			foreach (Invoice Invoice in PersonalUnpaidInvoices)
 			{
-				Invoice2.IsPaid = true;
-				Invoice2.Paid = DateTime.UtcNow;
-				Invoice2.CancellationContractId = ContractId;
-				Invoice2.ExternalReference = Reference;
+				if (AmountLeft >= Invoice.AmountLeft)
+				{
+					Paid = await ServiceConfiguration.DecrementPersonalDebt(Invoice.AmountLeft, PI.PersonalNumber, PI.Country);
+					AmountLeft -= Paid;
+					AmountPaid += Paid;
+
+					Invoice.AmountPaid += Paid;
+					Invoice.IsPaid = true;
+					Invoice.Paid = DateTime.UtcNow;
+					Invoice.CancellationContractId = ContractId;
+					Invoice.ExternalReference = Reference;
+
+					Log.Notice("Neuro-Credits™ cancelled.", Invoice.InvoiceNumber.ToString(), PI.Jid, "InvoiceCancelled", Invoice.GetTags());
+				}
+				else
+				{
+					Paid = await ServiceConfiguration.DecrementPersonalDebt(AmountLeft, PI.PersonalNumber, PI.Country);
+					AmountLeft = 0;
+					AmountPaid += Paid;
+
+					Invoice.AmountPaid += Paid;
+
+					Log.Informational("Neuro-Credits™ partially paid.", Invoice.InvoiceNumber.ToString(), PI.Jid, "InvoicePartialPayment", Invoice.GetTags());
+				}
+
+				await Database.Update(Invoice);
+
+				if (AmountLeft <= 0)
+					return new PaymentResult(AmountPaid, Currency);
 			}
 
-			await Database.Update(MatchingInvoices);
+			if (PI.HasOrganizationalBillingInformation)
+			{
+				IEnumerable<Invoice> OrganizationalUnpaidInvoices = await Database.Find<Invoice>(new FilterAnd(
+					new FilterFieldEqualTo("OrganizationNumber", PI.OrganizationNumber),
+					new FilterFieldEqualTo("OrganizationCountry", PI.OrganizationCountry),
+					new FilterFieldEqualTo("IsPaid", false),
+					new FilterFieldEqualTo("Currency", Currency)));
 
-			foreach (Invoice Invoice2 in MatchingInvoices)
-				Log.Notice("Neuro-Credits™ cancelled.", Invoice2.InvoiceNumber.ToString(), Invoice2.Account, "InvoiceCancelled", Invoice2.GetTags());
+				foreach (Invoice Invoice in OrganizationalUnpaidInvoices)
+				{
+					if (AmountLeft >= Invoice.AmountLeft)
+					{
+						Paid = await ServiceConfiguration.DecrementOrganizationalDebt(Invoice.AmountLeft, PI.OrganizationNumber, PI.OrganizationCountry);
+						AmountLeft -= Paid;
+						AmountPaid += Paid;
 
-			return new PaymentResult(Amount, Currency);
+						Invoice.AmountPaid += Paid;
+						Invoice.IsPaid = true;
+						Invoice.Paid = DateTime.UtcNow;
+						Invoice.CancellationContractId = ContractId;
+						Invoice.ExternalReference = Reference;
+
+						Log.Notice("Neuro-Credits™ cancelled.", Invoice.InvoiceNumber.ToString(), PI.Jid, "InvoiceCancelled", Invoice.GetTags());
+					}
+					else
+					{
+						Paid = await ServiceConfiguration.DecrementOrganizationalDebt(AmountLeft, PI.OrganizationNumber, PI.OrganizationCountry);
+						AmountLeft = 0;
+						AmountPaid += Paid;
+
+						Invoice.AmountPaid += Paid;
+
+						Log.Informational("Neuro-Credits™ partially paid.", Invoice.InvoiceNumber.ToString(), PI.Jid, "InvoicePartialPayment", Invoice.GetTags());
+					}
+
+					await Database.Update(Invoice);
+
+					if (AmountLeft <= 0)
+						return new PaymentResult(AmountPaid, Currency);
+				}
+			}
+
+			return new PaymentResult(AmountPaid, Currency);
 		}
 
 		/// <summary>
@@ -592,52 +571,18 @@ namespace TAG.Payments.NeuroCredits
 			decimal MaxAmount = await ServiceConfiguration.CurrentPersonalDebt(PI.PersonalNumber, PI.Country);
 			string Currency = await ServiceConfiguration.GetCurrencyOfAccount(AccountName);
 
-			IEnumerable<Invoice> PendingInvoices = await Database.Find<Invoice>(new FilterAnd(
-				new FilterFieldEqualTo("Account", AccountName),
-				new FilterFieldEqualTo("IsPaid", false),
-				new FilterFieldEqualTo("Currency", Currency)));
+			if (PI.HasOrganizationalBillingInformation)
+				MaxAmount += await ServiceConfiguration.CurrentOrganizationDebt(PI.OrganizationNumber, PI.OrganizationCountry);
 
-			decimal MinAmount = MaxAmount;
-
-			foreach (Invoice Invoice in PendingInvoices)
-			{
-				if (Invoice.Amount < MinAmount)
-					MinAmount = Invoice.Amount;
-			}
-
-			if (MinAmount > MaxAmount)
-				return new IDictionary<CaseInsensitiveString, object>[0];
-
-			Dictionary<decimal, bool> PrimaryKeys = new Dictionary<decimal, bool>()
-			{
-				{ MaxAmount, true }
-			};
-			List<Dictionary<CaseInsensitiveString, object>> Options = new List<Dictionary<CaseInsensitiveString, object>>()
+			return new IDictionary<CaseInsensitiveString, object>[]
 			{
 				new Dictionary<CaseInsensitiveString, object>()
 				{
 					{ "Amount", MaxAmount },
 					{ "Max(Amount)", MaxAmount },
-					{ "Min(Amount)", MinAmount }
+					{ "Currency", Currency }
 				}
 			};
-
-			foreach (Invoice Invoice in PendingInvoices)
-			{
-				if (PrimaryKeys.ContainsKey(Invoice.Amount))
-					continue;
-
-				PrimaryKeys[Invoice.Amount] = true;
-
-				Options.Add(new Dictionary<CaseInsensitiveString, object>()
-				{
-					{ "Amount", Invoice.Amount },
-					{ "Max(Amount)", MaxAmount },
-					{ "Min(Amount)", MinAmount }
-				});
-			}
-
-			return Options.ToArray();
 		}
 
 		#endregion
