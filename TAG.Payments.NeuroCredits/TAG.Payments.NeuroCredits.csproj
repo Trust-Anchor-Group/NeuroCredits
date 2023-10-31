@@ -5,6 +5,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Remove="C:\Users\peter\.nuget\packages\waher.iotgateway\1.7.2\contentFiles\any\netstandard2.0\Root\Events.js" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="Root\NeuroCredits\Accounts.md" />
     <None Remove="Root\NeuroCredits\Api\DeleteAccount.ws" />
     <None Remove="Root\NeuroCredits\Api\DeleteOrganization.ws" />
@@ -12,6 +16,7 @@
     <None Remove="Root\NeuroCredits\Api\EditOrganization.ws" />
     <None Remove="Root\NeuroCredits\Api\GetAccountDebt.ws" />
     <None Remove="Root\NeuroCredits\Api\GetOrganizationDebt.ws" />
+    <None Remove="Root\NeuroCredits\General.md" />
     <None Remove="Root\NeuroCredits\Logo.png" />
     <None Remove="Root\NeuroCredits\Organizations.md" />
     <None Remove="Root\NeuroCredits\Settings.js" />
@@ -45,6 +50,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Root\NeuroCredits\Organizations.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Root\NeuroCredits\General.md">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Root\NeuroCredits\Settings.js">

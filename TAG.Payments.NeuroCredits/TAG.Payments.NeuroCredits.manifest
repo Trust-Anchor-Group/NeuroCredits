@@ -4,10 +4,10 @@
 	<Folder name="Root">
 		<Folder name="NeuroCredits">
 			<Content fileName="Accounts.md"/>
+			<Content fileName="General.md"/>
 			<Content fileName="Logo.png"/>
 			<Content fileName="Organizations.md"/>
 			<Content fileName="Settings.js"/>
-			<Content fileName="Settings.md"/>
 			<Content fileName="Settings.md"/>
 			<Folder name="Api">
 				<Content fileName="DeleteAccount.ws"/>
