@@ -25,3 +25,6 @@ Settings
 
 Status
 ----------
+
+<button type="button" class="posButton" onclick="OpenUrl('PendingInvoices.md')">Pending Invoices...</button>
+<button type="button" class="posButton" onclick="OpenUrl('CancelledInvoices.md')">Cancelled Invoices...</button>

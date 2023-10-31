@@ -16,15 +16,23 @@
     <None Remove="Root\NeuroCredits\Api\EditOrganization.ws" />
     <None Remove="Root\NeuroCredits\Api\GetAccountDebt.ws" />
     <None Remove="Root\NeuroCredits\Api\GetOrganizationDebt.ws" />
+    <None Remove="Root\NeuroCredits\CancelledInvoices.md" />
     <None Remove="Root\NeuroCredits\General.md" />
     <None Remove="Root\NeuroCredits\Logo.png" />
     <None Remove="Root\NeuroCredits\Organizations.md" />
+    <None Remove="Root\NeuroCredits\PendingInvoices.md" />
     <None Remove="Root\NeuroCredits\Settings.js" />
     <None Remove="Root\NeuroCredits\Settings.md" />
     <None Remove="TAG.Payments.NeuroCredits.manifest" />
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="Root\NeuroCredits\CancelledInvoices.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Root\NeuroCredits\PendingInvoices.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Root\NeuroCredits\Api\DeleteOrganization.ws">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
