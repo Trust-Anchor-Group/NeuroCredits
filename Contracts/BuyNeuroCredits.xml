@@ -84,7 +84,7 @@
 				</paragraph>
 			</description>
 		</calcParameter>
-		<numericalParameter name="Installments" min="1" minIncluded="true" max="6" maxIncluded="true">
+		<numericalParameter name="Installments" min="1" minIncluded="true" max="12" maxIncluded="true">
 			<description xml:lang="en">
 				<paragraph>
 					<text>Number of installments over which to pay the Neuro-Credits™</text>
