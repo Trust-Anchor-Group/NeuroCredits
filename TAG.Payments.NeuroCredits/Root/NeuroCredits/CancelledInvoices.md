@@ -20,7 +20,15 @@ Below you can review cancelled invoices, and if they have been paid, revoked, ab
 | Inv.Nr | Recipient | Pers./Org.Nr | Amount Paid | Currency | Created | Paid | \#Reminders | Installment | Contract |
 |-------:|:----------|:------------:|------------:|:---------|:-------:|:----:|------------:|:-----------:|:---------|
 {{
-Invoices:=select * from TAG.Payments.NeuroCredits.Data.Invoice where IsPaid=true order by InvoiceNumber;
+Invoices:=select 
+	top 20 * 
+from 
+	TAG.Payments.NeuroCredits.Data.Invoice 
+where 
+	IsPaid=true 
+order by 
+	InvoiceNumber desc;
+
 foreach Invoice in Invoices do
 (
 	]]| ((Invoice.InvoiceNumber)) [[;
@@ -32,10 +40,16 @@ foreach Invoice in Invoices do
 	]]| ((Invoice.Paid)) [[;
 	]]| ((Invoice.NrReminders)) [[;
 	]]| ((Invoice.Installment))/((Invoice.NrInstallments)) [[;
-	]]| ((empty(Invoice.CancellationContractId)?"":"[Contract](/Contract.md?ID="+Invoice.CancellationContractId+")")) [[;
+	]]| ((empty(Invoice.CancellationContractId)?"":"<a href=\"/Contract.md?ID="+Invoice.CancellationContractId+"\" target=\"_blank\">Contract</a>")) [[;
 	]]|
 [[
-)
+);
+
+if count(Invoices)==20 then ]]
+
+<button id="LoadMoreButton" class='posButton' type="button" onclick='LoadMore(this,20,20,"Cancelled")'>Load More</button>
+[[
+
 }}
 
 <button type="button" class="negButton" onclick="Close()">Close</button>

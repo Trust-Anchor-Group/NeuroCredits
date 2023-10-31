@@ -20,7 +20,15 @@ Below you can review pending invoices.
 | Inv.Nr | Recipient | Pers./Org.Nr | Total | Left | Currency | Created | Due | \#Reminders | Installment | Contract |
 |-------:|:----------|:------------:|------:|-----:|:---------|:-------:|:---:|------------:|:-----------:|:---------|
 {{
-Invoices:=select * from TAG.Payments.NeuroCredits.Data.Invoice where IsPaid=false order by DueDate;
+Invoices:=select 
+	top 20 * 
+from 
+	TAG.Payments.NeuroCredits.Data.Invoice 
+where 
+	IsPaid=false 
+order by 
+	DueDate;
+
 foreach Invoice in Invoices do
 (
 	]]| ((Invoice.InvoiceNumber)) [[;
@@ -33,10 +41,16 @@ foreach Invoice in Invoices do
 	]]| ((Invoice.DueDate)) [[;
 	]]| ((Invoice.NrReminders)) [[;
 	]]| ((Invoice.Installment))/((Invoice.NrInstallments)) [[;
-	]]| ((empty(Invoice.NeuroCreditsContractId)?"":"[Contract](/Contract.md?ID="+Invoice.NeuroCreditsContractId+")")) [[;
+	]]| ((empty(Invoice.NeuroCreditsContractId)?"":"<a href=\"/Contract.md?ID="+Invoice.NeuroCreditsContractId+"\" target=\"_blank\">Contract</a>")) [[;
 	]]|
 [[
-)
+);
+
+if count(Invoices)==20 then ]]
+
+<button id="LoadMoreButton" class='posButton' type="button" onclick='LoadMore(this,20,20,"Pending")'>Load More</button>
+[[
+
 }}
 
 <button type="button" class="negButton" onclick="Close()">Close</button>

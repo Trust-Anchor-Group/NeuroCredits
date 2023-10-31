@@ -16,6 +16,8 @@
     <None Remove="Root\NeuroCredits\Api\EditOrganization.ws" />
     <None Remove="Root\NeuroCredits\Api\GetAccountDebt.ws" />
     <None Remove="Root\NeuroCredits\Api\GetOrganizationDebt.ws" />
+    <None Remove="Root\NeuroCredits\Api\LoadMoreCancelled.ws" />
+    <None Remove="Root\NeuroCredits\Api\LoadMorePending.ws" />
     <None Remove="Root\NeuroCredits\CancelledInvoices.md" />
     <None Remove="Root\NeuroCredits\General.md" />
     <None Remove="Root\NeuroCredits\Logo.png" />
@@ -27,6 +29,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="Root\NeuroCredits\Api\LoadMorePending.ws">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Root\NeuroCredits\Api\LoadMoreCancelled.ws">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Root\NeuroCredits\CancelledInvoices.md">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

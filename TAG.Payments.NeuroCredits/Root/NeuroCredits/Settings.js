@@ -1419,3 +1419,164 @@ function Close()
 {
 	window.close();
 }
+
+function LoadMore(Button, Offset, MaxCount, Type)
+{
+	var xhttp = new XMLHttpRequest();
+	xhttp.onreadystatechange = function ()
+	{
+		if (xhttp.readyState === 4)
+		{
+			Button.removeAttribute("data-scroll");
+
+			if (xhttp.status === 200)
+			{
+				var Response = JSON.parse(xhttp.responseText);
+				var i, c = Response.length;
+
+				var Loop = Button.parentNode.firstChild;
+				while (Loop.tagName !== "TABLE")
+					Loop = Loop.nextSibling;
+
+				var Table = Loop;
+				Loop = Loop.firstChild;
+				while (Loop)
+				{
+					if (Loop.tagName == "TBODY")
+					{
+						Table = Loop;
+						Loop = Loop.firstChild;
+					}
+					else
+						Loop = Loop.nextSibling;
+				}
+
+				for (i = 0; i < c; i++)
+				{
+					var Invoice = Response[i];
+
+					var Tr = document.createElement("TR");
+					Table.appendChild(Tr);
+
+					var Td = document.createElement("TD");
+					Tr.appendChild(Td);
+					Td.setAttribute("style", "text-align:right");
+					Td.innerText = Invoice.invoiceNumber;
+
+					Td = document.createElement("TD");
+					Td.setAttribute("style", "text-align:left");
+					Tr.appendChild(Td);
+					Td.innerText = Invoice.name;
+
+					Td = document.createElement("TD");
+					Td.setAttribute("style", "text-align:center");
+					Tr.appendChild(Td);
+					Td.innerText = Invoice.nr;
+
+					if (Type == "Cancelled")
+					{
+						Td = document.createElement("TD");
+						Td.setAttribute("style", "text-align:right");
+						Tr.appendChild(Td);
+						Td.innerText = Invoice.amountPaid;
+					}
+					else if (Type == "Pending")
+					{
+						Td = document.createElement("TD");
+						Td.setAttribute("style", "text-align:right");
+						Tr.appendChild(Td);
+						Td.innerText = Invoice.total;
+
+						Td = document.createElement("TD");
+						Td.setAttribute("style", "text-align:right");
+						Tr.appendChild(Td);
+						Td.innerText = Invoice.left;
+					}
+
+					Td = document.createElement("TD");
+					Td.setAttribute("style", "text-align:left");
+					Tr.appendChild(Td);
+					Td.innerText = Invoice.currency;
+
+					Td = document.createElement("TD");
+					Td.setAttribute("style", "text-align:center");
+					Tr.appendChild(Td);
+					Td.innerText = Invoice.created;
+
+					if (Type == "Cancelled")
+					{
+						Td = document.createElement("TD");
+						Td.setAttribute("style", "text-align:center");
+						Tr.appendChild(Td);
+						Td.innerText = Invoice.paid;
+					}
+					else if (Type == "Pending")
+					{
+						Td = document.createElement("TD");
+						Td.setAttribute("style", "text-align:center");
+						Tr.appendChild(Td);
+						Td.innerText = Invoice.due;
+					}
+
+					Td = document.createElement("TD");
+					Td.setAttribute("style", "text-align:right");
+					Tr.appendChild(Td);
+					Td.innerText = Invoice.nrReminders;
+
+					Td = document.createElement("TD");
+					Td.setAttribute("style", "text-align:center");
+					Tr.appendChild(Td);
+					Td.innerText = Invoice.installment + "/" + Invoice.nrInstallments;
+
+					Td = document.createElement("TD");
+					Td.setAttribute("style", "text-align:center");
+					Tr.appendChild(Td);
+
+					if (Invoice.contractId)
+					{
+						var A = document.createElement("A");
+						A.setAttribute("href", "/Contract.md?ID=" + Invoice.contractId);
+						A.setAttribute("target", "_blank");
+						A.innerText = "Contract";
+						Td.appendChild(A);
+					}
+				}
+
+				if (c < MaxCount)
+					Button.parentNode.removeChild(Button);
+				else
+				{
+					Button.setAttribute("onclick", "LoadMore(this," + (Offset + MaxCount) +
+						"," + MaxCount + ",\"" + Type + "\")");
+				}
+			}
+		}
+	};
+
+	Button.setAttribute("data-scroll", "x");
+	xhttp.open("POST", "Api/LoadMore"+Type+".ws", true);
+	xhttp.setRequestHeader("Content-Type", "application/json");
+	xhttp.setRequestHeader("Accept", "application/json");
+	xhttp.send(JSON.stringify(
+		{
+			"offset": Offset,
+			"maxCount": MaxCount
+		}
+	));
+}
+
+window.onscroll = function ()
+{
+	var Button = document.getElementById("LoadMoreButton");
+
+	if (Button)
+	{
+		var Rect = Button.getBoundingClientRect();
+		if (Rect.top <= window.innerHeight * 2)
+		{
+			var Scroll = Button.getAttribute("data-scroll");
+			if (Scroll !== "x")
+				Button.click();
+		}
+	}
+}

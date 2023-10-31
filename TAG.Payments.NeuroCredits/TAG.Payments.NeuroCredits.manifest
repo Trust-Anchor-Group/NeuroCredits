@@ -18,6 +18,8 @@
 				<Content fileName="EditOrganization.ws"/>
 				<Content fileName="GetAccountDebt.ws"/>
 				<Content fileName="GetOrganizationDebt.ws"/>
+				<Content fileName="LoadMoreCancelled.ws"/>
+				<Content fileName="LoadMorePending.ws"/>
 			</Folder>
 		</Folder>
 	</Folder>
