@@ -1,7 +1,6 @@
 ﻿using Paiwise;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using TAG.Payments.NeuroCredits.Data;
 using Waher.Content;
@@ -21,10 +20,10 @@ namespace TAG.Payments.NeuroCredits
 	/// </summary>
 	public class NeuroCreditsService : IBuyEDalerService, ISellEDalerService
 	{
-		private const string buyEDalerTemplateIdDev = "2ccae7c5-bea4-cdad-ec97-0d1b02016989@legal.";    // For local development, you need to republish the contracts on the local development neuron,
+		private const string buyEDalerTemplateIdDev = "2cd3fe8d-1b5e-ab78-b459-dc33ff467d20@legal.";    // For local development, you need to republish the contracts on the local development neuron,
 		private const string sellEDalerTemplateIdDev = "2ccae7dd-bea4-cdb1-ec97-0d1b0277db08@legal.";   // and replace these values with your local Contract IDs. Do not check those IDs into the repo.
-		private const string buyEDalerTemplateIdProd = "2ccae830-50ee-276d-7030-d6ad4fa694bb@legal.lab.tagroot.io";
-		private const string sellEDalerTemplateIdProd = "2ccae845-50ee-2774-7030-d6ad4f0f34e3@legal.lab.tagroot.io";
+		private const string buyEDalerTemplateIdProd = "2cd3ffdf-6c21-3382-880e-301af7abb553@legal.paiwise.tagroot.io";
+		private const string sellEDalerTemplateIdProd = "2cd3fff4-6c21-3386-880e-301af736a5d1@legal.paiwise.tagroot.io";
 
 		private readonly NeuroCreditsServiceProvider provider;
 
@@ -257,21 +256,20 @@ namespace TAG.Payments.NeuroCredits
 			if (!ContractParameters.TryGetValue("ContractId", out Obj) || !(Obj is string ContractId))
 				ContractId = null;
 
-			decimal Price = Math.Ceiling(Amount * (100 + PeriodInterest) / 100);
-
-			if (Details.OrganizationalCredit)
-				Price = await ServiceConfiguration.IncrementOrganizationalDebt(Price, PI.OrganizationNumber, PI.OrganizationCountry);
-			else
-				Price = await ServiceConfiguration.IncrementPersonalDebt(Price, PI.PersonalNumber, PI.Country);
-
+			decimal AmountLeft = Math.Ceiling(Amount * (100 + PeriodInterest) / 100);
 			int NrInstallments = (int)Math.Ceiling(Installments);
 			int Installment;
-			decimal AmountLeft = Price;
 			DateTime DueDate = InitialDueDate;
 
 			for (Installment = 1; Installment <= NrInstallments; Installment++)
 			{
 				decimal InstallmentAmount = Math.Ceiling(AmountLeft / (NrInstallments - Installment + 1));
+
+				if (Details.OrganizationalCredit)
+					InstallmentAmount = await ServiceConfiguration.IncrementOrganizationalDebt(InstallmentAmount, PI.OrganizationNumber, PI.OrganizationCountry);
+				else
+					InstallmentAmount = await ServiceConfiguration.IncrementPersonalDebt(InstallmentAmount, PI.PersonalNumber, PI.Country);
+
 				AmountLeft -= InstallmentAmount;
 				AmountLeft = Math.Ceiling(AmountLeft * (100 + PeriodInterest) * 0.01M);
 
@@ -308,19 +306,23 @@ namespace TAG.Payments.NeuroCredits
 					Region = PI.Region,
 					Country = PI.Country,
 					Jid = PI.Jid,
-					PhoneNumber = PI.PhoneNumber,
-					OrganizationName = PI.OrganizationName,
-					Department = PI.Department,
-					Role = PI.Role,
-					OrganizationNumber = PI.OrganizationNumber,
-					OrganizationAddress = PI.OrganizationAddress,
-					OrganizationAddress2 = PI.OrganizationAddress2,
-					OrganizationArea = PI.OrganizationArea,
-					OrganizationCity = PI.OrganizationCity,
-					OrganizationPostalCode = PI.OrganizationPostalCode,
-					OrganizationRegion = PI.OrganizationRegion,
-					OrganizationCountry = PI.OrganizationCountry
+					PhoneNumber = PI.PhoneNumber
 				};
+
+				if (Details.OrganizationalCredit)
+				{
+					Invoice.OrganizationName = PI.OrganizationName;
+					Invoice.Department = PI.Department;
+					Invoice.Role = PI.Role;
+					Invoice.OrganizationNumber = PI.OrganizationNumber;
+					Invoice.OrganizationAddress = PI.OrganizationAddress;
+					Invoice.OrganizationAddress2 = PI.OrganizationAddress2;
+					Invoice.OrganizationArea = PI.OrganizationArea;
+					Invoice.OrganizationCity = PI.OrganizationCity;
+					Invoice.OrganizationPostalCode = PI.OrganizationPostalCode;
+					Invoice.OrganizationRegion = PI.OrganizationRegion;
+					Invoice.OrganizationCountry = PI.OrganizationCountry;
+				}
 
 				await Database.Insert(Invoice);
 
@@ -472,7 +474,11 @@ namespace TAG.Payments.NeuroCredits
 			{
 				if (AmountLeft >= Invoice.AmountLeft)
 				{
-					Paid = await ServiceConfiguration.DecrementPersonalDebt(Invoice.AmountLeft, PI.PersonalNumber, PI.Country);
+					if (Invoice.IsOrganizational)
+						Paid = await ServiceConfiguration.DecrementOrganizationalDebt(Invoice.AmountLeft, PI.OrganizationNumber, PI.OrganizationCountry);
+					else
+						Paid = await ServiceConfiguration.DecrementPersonalDebt(Invoice.AmountLeft, PI.PersonalNumber, PI.Country);
+
 					AmountLeft -= Paid;
 					AmountPaid += Paid;
 
@@ -486,7 +492,11 @@ namespace TAG.Payments.NeuroCredits
 				}
 				else
 				{
-					Paid = await ServiceConfiguration.DecrementPersonalDebt(AmountLeft, PI.PersonalNumber, PI.Country);
+					if (Invoice.IsOrganizational)
+						Paid = await ServiceConfiguration.DecrementOrganizationalDebt(AmountLeft, PI.OrganizationNumber, PI.OrganizationCountry);
+					else
+						Paid = await ServiceConfiguration.DecrementPersonalDebt(AmountLeft, PI.PersonalNumber, PI.Country);
+
 					AmountLeft = 0;
 					AmountPaid += Paid;
 
@@ -513,7 +523,11 @@ namespace TAG.Payments.NeuroCredits
 				{
 					if (AmountLeft >= Invoice.AmountLeft)
 					{
-						Paid = await ServiceConfiguration.DecrementOrganizationalDebt(Invoice.AmountLeft, PI.OrganizationNumber, PI.OrganizationCountry);
+						if (Invoice.IsOrganizational)
+							Paid = await ServiceConfiguration.DecrementOrganizationalDebt(Invoice.AmountLeft, PI.OrganizationNumber, PI.OrganizationCountry);
+						else
+							Paid = await ServiceConfiguration.DecrementPersonalDebt(Invoice.AmountLeft, PI.PersonalNumber, PI.Country);
+						
 						AmountLeft -= Paid;
 						AmountPaid += Paid;
 
@@ -527,7 +541,11 @@ namespace TAG.Payments.NeuroCredits
 					}
 					else
 					{
-						Paid = await ServiceConfiguration.DecrementOrganizationalDebt(AmountLeft, PI.OrganizationNumber, PI.OrganizationCountry);
+						if (Invoice.IsOrganizational)
+							Paid = await ServiceConfiguration.DecrementOrganizationalDebt(AmountLeft, PI.OrganizationNumber, PI.OrganizationCountry);
+						else
+							Paid = await ServiceConfiguration.DecrementPersonalDebt(AmountLeft, PI.PersonalNumber, PI.Country);
+						
 						AmountLeft = 0;
 						AmountPaid += Paid;
 

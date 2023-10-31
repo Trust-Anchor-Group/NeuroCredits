@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using Waher.Content;
 using Waher.Persistence;
 using Waher.Persistence.Attributes;
@@ -14,6 +15,7 @@ namespace TAG.Payments.NeuroCredits.Data
 	[TypeName(TypeNameSerialization.None)]
 	[Index("InvoiceNumber")]
 	[Index("IsPaid", "DueDate", "InvoiceNumber")]
+	[Index("IsPaid", "InvoiceNumber")]
 	[Index("PersonalNumber", "Country", "IsPaid", "InvoiceNumber")]
 	[Index("OrganizationNumber", "OrganizationCountry", "IsPaid", "InvoiceNumber")]
 	[ObsoleteMethod(nameof(UpgradePropertyValue))]
@@ -209,6 +211,11 @@ namespace TAG.Payments.NeuroCredits.Data
 		public string PhoneNumber { get; set; }
 
 		/// <summary>
+		/// If the invoice is an organizational invoice (true) or a personal invoice (false).
+		/// </summary>
+		public bool IsOrganizational => !string.IsNullOrEmpty(OrganizationNumber);
+
+		/// <summary>
 		/// Organization Name
 		/// </summary>
 		public string OrganizationName { get; set; }
@@ -294,85 +301,85 @@ namespace TAG.Payments.NeuroCredits.Data
 			if (this.Paid > DateTime.MinValue)
 				Result.Add(new KeyValuePair<string, object>("Paid", this.Paid));
 
-			if (!string.IsNullOrEmpty(this.NeuroCreditsContractId)) 
+			if (!string.IsNullOrEmpty(this.NeuroCreditsContractId))
 				Result.Add(new KeyValuePair<string, object>("NeuroCreditsContractId", this.NeuroCreditsContractId));
-			
-			if (!string.IsNullOrEmpty(this.CancellationContractId)) 
+
+			if (!string.IsNullOrEmpty(this.CancellationContractId))
 				Result.Add(new KeyValuePair<string, object>("CancellationContractId", this.CancellationContractId));
-			
-			if (!string.IsNullOrEmpty(this.ExternalReference)) 
+
+			if (!string.IsNullOrEmpty(this.ExternalReference))
 				Result.Add(new KeyValuePair<string, object>("ExternalReference", this.ExternalReference));
-			
-			if (!string.IsNullOrEmpty(this.FirstName)) 
+
+			if (!string.IsNullOrEmpty(this.FirstName))
 				Result.Add(new KeyValuePair<string, object>("FirstName", this.FirstName));
-			
-			if (!string.IsNullOrEmpty(this.MiddleName)) 
+
+			if (!string.IsNullOrEmpty(this.MiddleName))
 				Result.Add(new KeyValuePair<string, object>("MiddleName", this.MiddleName));
-			
-			if (!string.IsNullOrEmpty(this.LastName)) 
+
+			if (!string.IsNullOrEmpty(this.LastName))
 				Result.Add(new KeyValuePair<string, object>("LastName", this.LastName));
-			
-			if (!string.IsNullOrEmpty(this.PersonalNumber)) 
+
+			if (!string.IsNullOrEmpty(this.PersonalNumber))
 				Result.Add(new KeyValuePair<string, object>("PersonalNumber", this.PersonalNumber));
-			
-			if (!string.IsNullOrEmpty(this.Address)) 
+
+			if (!string.IsNullOrEmpty(this.Address))
 				Result.Add(new KeyValuePair<string, object>("Address", this.Address));
-			
-			if (!string.IsNullOrEmpty(this.Address2)) 
+
+			if (!string.IsNullOrEmpty(this.Address2))
 				Result.Add(new KeyValuePair<string, object>("Address2", this.Address2));
-			
-			if (!string.IsNullOrEmpty(this.Area)) 
+
+			if (!string.IsNullOrEmpty(this.Area))
 				Result.Add(new KeyValuePair<string, object>("Area", this.Area));
-			
-			if (!string.IsNullOrEmpty(this.City)) 
+
+			if (!string.IsNullOrEmpty(this.City))
 				Result.Add(new KeyValuePair<string, object>("City", this.City));
-			
-			if (!string.IsNullOrEmpty(this.PostalCode)) 
+
+			if (!string.IsNullOrEmpty(this.PostalCode))
 				Result.Add(new KeyValuePair<string, object>("PostalCode", this.PostalCode));
-			
-			if (!string.IsNullOrEmpty(this.Region)) 
+
+			if (!string.IsNullOrEmpty(this.Region))
 				Result.Add(new KeyValuePair<string, object>("Region", this.Region));
-			
-			if (!string.IsNullOrEmpty(this.Country)) 
+
+			if (!string.IsNullOrEmpty(this.Country))
 				Result.Add(new KeyValuePair<string, object>("Country", this.Country));
-			
-			if (!string.IsNullOrEmpty(this.Jid)) 
+
+			if (!string.IsNullOrEmpty(this.Jid))
 				Result.Add(new KeyValuePair<string, object>("Jid", this.Jid));
-			
-			if (!string.IsNullOrEmpty(this.PhoneNumber)) 
+
+			if (!string.IsNullOrEmpty(this.PhoneNumber))
 				Result.Add(new KeyValuePair<string, object>("PhoneNumber", this.PhoneNumber));
-			
-			if (!string.IsNullOrEmpty(this.OrganizationName)) 
+
+			if (!string.IsNullOrEmpty(this.OrganizationName))
 				Result.Add(new KeyValuePair<string, object>("OrganizationName", this.OrganizationName));
-			
-			if (!string.IsNullOrEmpty(this.Department)) 
+
+			if (!string.IsNullOrEmpty(this.Department))
 				Result.Add(new KeyValuePair<string, object>("Department", this.Department));
-			
-			if (!string.IsNullOrEmpty(this.Role)) 
+
+			if (!string.IsNullOrEmpty(this.Role))
 				Result.Add(new KeyValuePair<string, object>("Role", this.Role));
-			
-			if (!string.IsNullOrEmpty(this.OrganizationNumber)) 
+
+			if (!string.IsNullOrEmpty(this.OrganizationNumber))
 				Result.Add(new KeyValuePair<string, object>("OrganizationNumber", this.OrganizationNumber));
-			
-			if (!string.IsNullOrEmpty(this.OrganizationAddress)) 
+
+			if (!string.IsNullOrEmpty(this.OrganizationAddress))
 				Result.Add(new KeyValuePair<string, object>("OrganizationAddress", this.OrganizationAddress));
-			
-			if (!string.IsNullOrEmpty(this.OrganizationAddress2)) 
+
+			if (!string.IsNullOrEmpty(this.OrganizationAddress2))
 				Result.Add(new KeyValuePair<string, object>("OrganizationAddress2", this.OrganizationAddress2));
-			
-			if (!string.IsNullOrEmpty(this.OrganizationArea)) 
+
+			if (!string.IsNullOrEmpty(this.OrganizationArea))
 				Result.Add(new KeyValuePair<string, object>("OrganizationArea", this.OrganizationArea));
-			
-			if (!string.IsNullOrEmpty(this.OrganizationCity)) 
+
+			if (!string.IsNullOrEmpty(this.OrganizationCity))
 				Result.Add(new KeyValuePair<string, object>("OrganizationCity", this.OrganizationCity));
-			
-			if (!string.IsNullOrEmpty(this.OrganizationPostalCode)) 
+
+			if (!string.IsNullOrEmpty(this.OrganizationPostalCode))
 				Result.Add(new KeyValuePair<string, object>("OrganizationPostalCode", this.OrganizationPostalCode));
-			
-			if (!string.IsNullOrEmpty(this.OrganizationRegion)) 
+
+			if (!string.IsNullOrEmpty(this.OrganizationRegion))
 				Result.Add(new KeyValuePair<string, object>("OrganizationRegion", this.OrganizationRegion));
-			
-			if (!string.IsNullOrEmpty(this.OrganizationCountry)) 
+
+			if (!string.IsNullOrEmpty(this.OrganizationCountry))
 				Result.Add(new KeyValuePair<string, object>("OrganizationCountry", this.OrganizationCountry));
 
 			return Result.ToArray();
@@ -384,7 +391,7 @@ namespace TAG.Payments.NeuroCredits.Data
 		/// <param name="Properties">Obsolete properties.</param>
 		public void UpgradePropertyValue(Dictionary<string, object> Properties)
 		{
-			foreach (KeyValuePair<string,object> Property in Properties)
+			foreach (KeyValuePair<string, object> Property in Properties)
 			{
 				switch (Property.Key)
 				{
@@ -396,6 +403,37 @@ namespace TAG.Payments.NeuroCredits.Data
 						this.Period = new Duration(false, 0, 0, (int)Expression.ToDouble(Property.Value), 0, 0, 0);
 						break;
 				}
+			}
+		}
+
+		/// <summary>
+		/// Full name of person
+		/// </summary>
+		public string PersonalName
+		{
+			get
+			{
+				StringBuilder sb = new StringBuilder();
+				bool First = false;
+
+				Append(sb, this.FirstName, " ", ref First);
+				Append(sb, this.MiddleName, " ", ref First);
+				Append(sb, this.LastName, " ", ref First);
+
+				return sb.ToString();
+			}
+		}
+
+		private static void Append(StringBuilder sb, string Value, string Delimiter, ref bool First)
+		{
+			if (!string.IsNullOrEmpty(Value))
+			{
+				if (First)
+					First = false;
+				else
+					sb.Append(Delimiter);
+
+				sb.Append(Value);
 			}
 		}
 
