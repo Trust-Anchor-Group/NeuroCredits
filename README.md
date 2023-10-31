@@ -46,7 +46,7 @@ package using the following information:
 | Package information                                                                                                              ||
 |:-----------------|:---------------------------------------------------------------------------------------------------------------|
 | Package          | `TAG.NeuroCredits.package`                                                                                     |
-| Installation key | TBD                                                                                                            |
+| Installation key | `qHgVDhIcD7PlhOFLY5fM0qMM5dqG6Lk6mmFTUk40Ap2muhOwtZ9OjE++idf4PxjAWCRnxxWi3PKA193514394afa737059b1995f7270000e` |
 | More Information | TBD                                                                                                            |
 
 ## Building, Compiling & Debugging
