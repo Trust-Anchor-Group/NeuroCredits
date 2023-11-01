@@ -372,8 +372,8 @@ namespace TAG.Payments.NeuroCredits
 
 			if (Details.OrganizationalCredit)
 			{
-				ReceiptTemplateFileName = Path.Combine(Gateway.RootFolder, "NeuroCredits", "ReceiptTemplates", "DefaultPersonalReceipt.md");
-				InvoiceTemplateFileName = Path.Combine(Gateway.RootFolder, "NeuroCredits", "InvoiceTemplates", "DefaultPersonalInvoice.md");
+				ReceiptTemplateFileName = Path.Combine(Gateway.RootFolder, "NeuroCredits", "ReceiptTemplates", "DefaultOrganizationalReceipt.md");
+				InvoiceTemplateFileName = Path.Combine(Gateway.RootFolder, "NeuroCredits", "InvoiceTemplates", "DefaultOrganizationalInvoice.md");
 			}
 			else
 			{

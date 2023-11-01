@@ -22,9 +22,11 @@
 				<Content fileName="LoadMorePending.ws"/>
 			</Folder>
 			<Folder name="InvoiceTemplates">
+				<Content fileName="DefaultOrganizationalInvoice.md"/>
 				<Content fileName="DefaultPersonalInvoice.md"/>
 			</Folder>
 			<Folder name="ReceiptTemplates">
+				<Content fileName="DefaultOrganizationalReceipt.md"/>
 				<Content fileName="DefaultPersonalReceipt.md"/>
 			</Folder>
 		</Folder>
