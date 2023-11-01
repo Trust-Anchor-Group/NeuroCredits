@@ -20,9 +20,11 @@
     <None Remove="Root\NeuroCredits\Api\LoadMorePending.ws" />
     <None Remove="Root\NeuroCredits\CancelledInvoices.md" />
     <None Remove="Root\NeuroCredits\General.md" />
+    <None Remove="Root\NeuroCredits\InvoiceTemplates\DefaultPersonalInvoice.md" />
     <None Remove="Root\NeuroCredits\Logo.png" />
     <None Remove="Root\NeuroCredits\Organizations.md" />
     <None Remove="Root\NeuroCredits\PendingInvoices.md" />
+    <None Remove="Root\NeuroCredits\ReceiptTemplates\DefaultPersonalReceipt.md" />
     <None Remove="Root\NeuroCredits\Settings.js" />
     <None Remove="Root\NeuroCredits\Settings.md" />
     <None Remove="TAG.Payments.NeuroCredits.manifest" />
@@ -36,6 +38,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Root\NeuroCredits\CancelledInvoices.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Root\NeuroCredits\InvoiceTemplates\DefaultPersonalInvoice.md">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Root\NeuroCredits\PendingInvoices.md">
@@ -69,6 +74,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Root\NeuroCredits\General.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Root\NeuroCredits\ReceiptTemplates\DefaultPersonalReceipt.md">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Root\NeuroCredits\Settings.js">

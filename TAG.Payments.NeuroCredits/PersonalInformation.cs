@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Waher.IoTGateway;
 using Waher.Persistence;
 using Waher.Persistence.Serialization;
 
@@ -272,6 +273,12 @@ namespace TAG.Payments.NeuroCredits
 		{
 			get
 			{
+				if (!CaseInsensitiveString.IsNullOrEmpty(Gateway.Domain))
+				{
+					if (string.IsNullOrEmpty(this.PhoneNumber))
+						return false;
+				}
+
 				return
 					!string.IsNullOrEmpty(this.FirstName) &&
 					!string.IsNullOrEmpty(this.LastName) &&

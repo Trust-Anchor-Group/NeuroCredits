@@ -1,9 +1,11 @@
 ﻿using Paiwise;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using TAG.Payments.NeuroCredits.Data;
 using Waher.Content;
+using Waher.Content.Markdown;
 using Waher.Events;
 using Waher.IoTGateway;
 using Waher.Networking.XMPP;
@@ -12,6 +14,7 @@ using Waher.Persistence.Filters;
 using Waher.Persistence.Serialization;
 using Waher.Runtime.Counters;
 using Waher.Runtime.Inventory;
+using Waher.Script;
 
 namespace TAG.Payments.NeuroCredits
 {
@@ -24,6 +27,16 @@ namespace TAG.Payments.NeuroCredits
 		private const string sellEDalerTemplateIdDev = "2ccae7dd-bea4-cdb1-ec97-0d1b0277db08@legal.";   // and replace these values with your local Contract IDs. Do not check those IDs into the repo.
 		private const string buyEDalerTemplateIdProd = "2cd3ffdf-6c21-3382-880e-301af7abb553@legal.paiwise.tagroot.io";
 		private const string sellEDalerTemplateIdProd = "2cd3fff4-6c21-3386-880e-301af736a5d1@legal.paiwise.tagroot.io";
+
+		/// <summary>
+		/// ID for contract template for buying Neuro-Credits™.
+		/// </summary>
+		public static string BuyEDalerTemplateId => CaseInsensitiveString.IsNullOrEmpty(Gateway.Domain) ? buyEDalerTemplateIdDev : buyEDalerTemplateIdProd;
+
+		/// <summary>
+		/// ID for contract template for cancelling Neuro-Credits™.
+		/// </summary>
+		public static string SellEDalerTemplateId => CaseInsensitiveString.IsNullOrEmpty(Gateway.Domain) ? sellEDalerTemplateIdDev : sellEDalerTemplateIdProd;
 
 		private readonly NeuroCreditsServiceProvider provider;
 
@@ -95,7 +108,7 @@ namespace TAG.Payments.NeuroCredits
 		/// <summary>
 		/// Contract ID of Template, for buying e-Daler
 		/// </summary>
-		public string BuyEDalerTemplateContractId => string.IsNullOrEmpty(Gateway.Domain) ? buyEDalerTemplateIdDev : buyEDalerTemplateIdProd;
+		public string BuyEDalerTemplateContractId => BuyEDalerTemplateId;
 
 		/// <summary>
 		/// Reference to the service provider.
@@ -256,10 +269,26 @@ namespace TAG.Payments.NeuroCredits
 			if (!ContractParameters.TryGetValue("ContractId", out Obj) || !(Obj is string ContractId))
 				ContractId = null;
 
+			string AccountName = XmppClient.GetAccount(PI.Jid);
+			string EMail = null;
+
+			// select top 1 EMail from "BrokerAccounts" where UserName=AccountName
+
+			foreach (object Item in await Database.Find("BrokerAccounts", 0, 1, new FilterFieldEqualTo("UserName", AccountName)))
+			{
+				GenericObject GenObj = await Database.Generalize(Item);
+
+				if (GenObj.TryGetFieldValue("EMail", out Obj))
+					EMail = Obj?.ToString();
+			}
+
+			decimal PurchaseAmount = Amount;
 			decimal AmountLeft = Math.Ceiling(Amount * (100 + PeriodInterest) / 100);
+			decimal Price = 0;
 			int NrInstallments = (int)Math.Ceiling(Installments);
 			int Installment;
 			DateTime DueDate = InitialDueDate;
+			List<Invoice> Invoices = new List<Invoice>();
 
 			for (Installment = 1; Installment <= NrInstallments; Installment++)
 			{
@@ -278,8 +307,9 @@ namespace TAG.Payments.NeuroCredits
 					InvoiceNumber = await RuntimeCounters.IncrementCounter(NeuroCreditsServiceProvider.ServiceId + ".NrInvoices"),
 					Installment = Installment,
 					NrInstallments = NrInstallments,
-					Account = XmppClient.GetAccount(PI.Jid),
+					Account = AccountName,
 					IsPaid = false,
+					PurchaseAmount = PurchaseAmount,
 					Amount = InstallmentAmount,
 					LateFees = 0,
 					NrReminders = 0,
@@ -306,7 +336,8 @@ namespace TAG.Payments.NeuroCredits
 					Region = PI.Region,
 					Country = PI.Country,
 					Jid = PI.Jid,
-					PhoneNumber = PI.PhoneNumber
+					PhoneNumber = PI.PhoneNumber,
+					EMail = EMail,
 				};
 
 				if (Details.OrganizationalCredit)
@@ -324,11 +355,65 @@ namespace TAG.Payments.NeuroCredits
 					Invoice.OrganizationCountry = PI.OrganizationCountry;
 				}
 
-				await Database.Insert(Invoice);
-
-				Log.Notice("Neuro-Credits™ bought.", Invoice.InvoiceNumber.ToString(), Invoice.Account, "InvoiceCreated", Invoice.GetTags());
-
+				Invoices.Add(Invoice);
+				Price += InstallmentAmount;
 				DueDate += Period;
+
+				Log.Notice("Neuro-Credits™ bought.", ContractId, AccountName, "InvoiceCreated", Invoice.GetTags());
+			}
+
+			foreach (Invoice Invoice in Invoices)
+				Invoice.PurchasePrice = Price;
+
+			await Database.Insert(Invoices.ToArray());
+
+			string InvoiceTemplateFileName;
+			string ReceiptTemplateFileName;
+
+			if (Details.OrganizationalCredit)
+			{
+				ReceiptTemplateFileName = Path.Combine(Gateway.RootFolder, "NeuroCredits", "ReceiptTemplates", "DefaultPersonalReceipt.md");
+				InvoiceTemplateFileName = Path.Combine(Gateway.RootFolder, "NeuroCredits", "InvoiceTemplates", "DefaultPersonalInvoice.md");
+			}
+			else
+			{
+				ReceiptTemplateFileName = Path.Combine(Gateway.RootFolder, "NeuroCredits", "ReceiptTemplates", "DefaultPersonalReceipt.md");
+				InvoiceTemplateFileName = Path.Combine(Gateway.RootFolder, "NeuroCredits", "InvoiceTemplates", "DefaultPersonalInvoice.md");
+			}
+
+			string ObjectId = null;
+			try
+			{
+				ObjectId = ReceiptTemplateFileName;
+				string ReceiptMarkdown = await Resources.ReadAllTextAsync(ReceiptTemplateFileName);
+
+				ObjectId = InvoiceTemplateFileName;
+				string InvoiceMarkdown = await Resources.ReadAllTextAsync(InvoiceTemplateFileName);
+				string Markdown;
+
+				foreach (Invoice Invoice in Invoices)
+				{
+					Variables Variables = new Variables()
+					{
+						["Invoice"] = Invoice
+					};
+					MarkdownSettings Settings = new MarkdownSettings(null, false, Variables);
+
+					if (Invoice.Installment == 1)
+					{
+						ObjectId = ReceiptTemplateFileName;
+						Markdown = await MarkdownDocument.Preprocess(ReceiptMarkdown, Settings);
+						await Gateway.SendNotification(Markdown);
+					}
+
+					ObjectId = InvoiceTemplateFileName;
+					Markdown = await MarkdownDocument.Preprocess(InvoiceMarkdown, Settings);
+					await Gateway.SendNotification(Markdown);
+				}
+			}
+			catch (Exception ex)
+			{
+				Log.Critical(ex, ObjectId);
 			}
 
 			return new PaymentResult(Amount, Currency);
@@ -390,7 +475,7 @@ namespace TAG.Payments.NeuroCredits
 		/// <summary>
 		/// Contract ID of Template, for selling e-Daler
 		/// </summary>
-		public string SellEDalerTemplateContractId => string.IsNullOrEmpty(Gateway.Domain) ? sellEDalerTemplateIdDev : sellEDalerTemplateIdProd;
+		public string SellEDalerTemplateContractId => SellEDalerTemplateId;
 
 		/// <summary>
 		/// Reference to the service provider.
@@ -527,7 +612,7 @@ namespace TAG.Payments.NeuroCredits
 							Paid = await ServiceConfiguration.DecrementOrganizationalDebt(Invoice.AmountLeft, PI.OrganizationNumber, PI.OrganizationCountry);
 						else
 							Paid = await ServiceConfiguration.DecrementPersonalDebt(Invoice.AmountLeft, PI.PersonalNumber, PI.Country);
-						
+
 						AmountLeft -= Paid;
 						AmountPaid += Paid;
 
@@ -545,7 +630,7 @@ namespace TAG.Payments.NeuroCredits
 							Paid = await ServiceConfiguration.DecrementOrganizationalDebt(AmountLeft, PI.OrganizationNumber, PI.OrganizationCountry);
 						else
 							Paid = await ServiceConfiguration.DecrementPersonalDebt(AmountLeft, PI.PersonalNumber, PI.Country);
-						
+
 						AmountLeft = 0;
 						AmountPaid += Paid;
 

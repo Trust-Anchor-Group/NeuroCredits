@@ -21,6 +21,12 @@
 				<Content fileName="LoadMoreCancelled.ws"/>
 				<Content fileName="LoadMorePending.ws"/>
 			</Folder>
+			<Folder name="InvoiceTemplates">
+				<Content fileName="DefaultPersonalInvoice.md"/>
+			</Folder>
+			<Folder name="ReceiptTemplates">
+				<Content fileName="DefaultPersonalReceipt.md"/>
+			</Folder>
 		</Folder>
 	</Folder>
 </Module>

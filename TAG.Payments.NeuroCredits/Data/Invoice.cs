@@ -51,6 +51,16 @@ namespace TAG.Payments.NeuroCredits.Data
 		public bool IsPaid { get; set; }
 
 		/// <summary>
+		/// Purchase amount
+		/// </summary>
+		public decimal PurchaseAmount { get; set; }
+
+		/// <summary>
+		/// Purchase price
+		/// </summary>
+		public decimal PurchasePrice { get; set; }
+
+		/// <summary>
 		/// Amount
 		/// </summary>
 		public decimal Amount { get; set; }
@@ -211,9 +221,14 @@ namespace TAG.Payments.NeuroCredits.Data
 		public string PhoneNumber { get; set; }
 
 		/// <summary>
+		/// E-mail address of account.
+		/// </summary>
+		public string EMail { get; set; }
+
+		/// <summary>
 		/// If the invoice is an organizational invoice (true) or a personal invoice (false).
 		/// </summary>
-		public bool IsOrganizational => !string.IsNullOrEmpty(OrganizationNumber);
+		public bool IsOrganizational => !string.IsNullOrEmpty(this.OrganizationNumber);
 
 		/// <summary>
 		/// Organization Name
@@ -281,6 +296,8 @@ namespace TAG.Payments.NeuroCredits.Data
 				new KeyValuePair<string, object>("InvoiceNumber", this.InvoiceNumber),
 				new KeyValuePair<string, object>("Account", this.Account),
 				new KeyValuePair<string, object>("IsPaid", this.IsPaid),
+				new KeyValuePair<string, object>("PurchaseAmount", this.PurchaseAmount),
+				new KeyValuePair<string, object>("PurchasePrice", this.PurchasePrice),
 				new KeyValuePair<string, object>("Amount", this.Amount),
 				new KeyValuePair<string, object>("LateFees", this.LateFees),
 				new KeyValuePair<string, object>("TotalAmount", this.TotalAmount),
@@ -348,6 +365,9 @@ namespace TAG.Payments.NeuroCredits.Data
 
 			if (!string.IsNullOrEmpty(this.PhoneNumber))
 				Result.Add(new KeyValuePair<string, object>("PhoneNumber", this.PhoneNumber));
+
+			if (!string.IsNullOrEmpty(this.EMail))
+				Result.Add(new KeyValuePair<string, object>("EMail", this.EMail));
 
 			if (!string.IsNullOrEmpty(this.OrganizationName))
 				Result.Add(new KeyValuePair<string, object>("OrganizationName", this.OrganizationName));
