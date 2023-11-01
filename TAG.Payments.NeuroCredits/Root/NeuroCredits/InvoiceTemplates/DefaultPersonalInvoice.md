@@ -50,6 +50,21 @@ if Invoice.AmountPaid!=0 then
 );
 }}
 
+| Recipient (Buyer)                                                                         ||
+|:-----------------|:------------------------------------------------------------------------|
+| Name:            | {{Invoice.PersonalName}}                                                |
+| Personal Number: | {{Invoice.PersonalNumber}}                                              |
+| Address:         | {{Invoice.Address}}{{empty(Invoice.Address2)?"":", "+Invoice.Address2}} |
+{{
+AddStringRow("Area",Invoice.Area);
+AddStringRow("Postal Code",Invoice.PostalCode);
+AddStringRow("City",Invoice.City);
+AddStringRow("Region",Invoice.Region);
+AddStringRow("Country",Invoice.Country);
+}}| JID:             | [{{Invoice.Jid}}](xmpp:{{Invoice.Jid}})                               |
+| Phone Number:    | [{{Invoice.PhoneNumber}}](tel:{{Invoice.PhoneNumber}})                  |
+| e-Mail Address:  | [{{Invoice.EMail}}](mailto:{{Invoice.EMail}})                           |
+
 ![Invoice cancellation link]({{
 PayUrl:="iotsc:"+TAG.Payments.NeuroCredits.NeuroCreditsService.SellEDalerTemplateId;
 PayUrl+="?Amount="+Str(Invoice.Amount);
