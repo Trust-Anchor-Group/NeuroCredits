@@ -80,8 +80,15 @@ AddStringRow("Country",Invoice.Country);
 | Phone Number:    | [{{Invoice.PhoneNumber}}](tel:{{Invoice.PhoneNumber}})                  |
 | e-Mail Address:  | [{{Invoice.EMail}}](mailto:{{Invoice.EMail}})                           |
 
-![Invoice cancellation link]({{
+{{
+]]```[[;
 PayUrl:="iotsc:"+TAG.Payments.NeuroCredits.NeuroCreditsService.SellEDalerTemplateId;
 PayUrl+="?Amount="+Str(Invoice.Amount);
 PayUrl+="&Currency="+Str(Invoice.Currency);
-Waher.IoTGateway.Gateway.GetUrl("/QR/" + UrlEncode(PayUrl))}})
+Image:=QrEncode(PayUrl,"H",400);
+Encoded:=Encode(Image);
+]]((Encoded[1])):Invoice cancellation link
+((Base64Encode(Encoded[0]);))
+```
+[[
+}}

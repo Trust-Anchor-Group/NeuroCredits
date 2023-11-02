@@ -66,14 +66,12 @@ AddStringRow("Country",Invoice.Country);
 {{
 if !empty(Invoice.NeuroCreditsContractId) then 
 (
-	]]
-
-![Purchase Contract, for Reference]([[;
-
-	]]((Waher.IoTGateway.Gateway.GetUrl("/QR/nfeat:"+Invoice.NeuroCreditsContractId);))[[;
-
-	]])
-
-[[;
+	]]```[[;
+	Image:=QrEncode("nfeat:"+Invoice.NeuroCreditsContractId,"H",400);
+	Encoded:=Encode(Image);
+	]]((Encoded[1])):Purchase Contract, for Reference
+((Base64Encode(Encoded[0]);))
+```
+[[
 );
 }}
