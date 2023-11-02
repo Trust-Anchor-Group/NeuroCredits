@@ -1580,3 +1580,11 @@ window.onscroll = function ()
 		}
 	}
 }
+
+function TestMailSent(Result)
+{
+	if (Result)
+		window.alert("Test e-mail was successfully sent.");
+	else
+		window.alert("An error occurred when attempting to send test e-mail. Check logs for more information.");
+}

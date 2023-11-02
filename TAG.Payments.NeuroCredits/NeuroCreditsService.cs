@@ -15,6 +15,7 @@ using Waher.Persistence.Serialization;
 using Waher.Runtime.Counters;
 using Waher.Runtime.Inventory;
 using Waher.Script;
+using Waher.Script.Objects;
 
 namespace TAG.Payments.NeuroCredits
 {
@@ -404,11 +405,14 @@ namespace TAG.Payments.NeuroCredits
 						ObjectId = ReceiptTemplateFileName;
 						Markdown = await MarkdownDocument.Preprocess(ReceiptMarkdown, Settings);
 						await Gateway.SendNotification(Markdown);
+						await SendEMail(EMail, "Receipt, Purchase of Neuro-Credits™", Markdown);
 					}
 
 					ObjectId = InvoiceTemplateFileName;
 					Markdown = await MarkdownDocument.Preprocess(InvoiceMarkdown, Settings);
 					await Gateway.SendNotification(Markdown);
+					await SendEMail(EMail, "Invoice" + (Invoice.NrInstallments > 1 ? " " + Invoice.Installment.ToString() : string.Empty) +
+						", Purchase of Neuro-Credits™", Markdown);
 				}
 			}
 			catch (Exception ex)
@@ -417,6 +421,57 @@ namespace TAG.Payments.NeuroCredits
 			}
 
 			return new PaymentResult(Amount, Currency);
+		}
+
+		/// <summary>
+		/// Sends an e-mail to a recipient, using the account configured for the service.
+		/// </summary>
+		/// <param name="EMail">Recipient e-mail address.</param>
+		/// <param name="Subject">Subject header.</param>
+		/// <param name="Markdown">Markdown content.</param>
+		public static async Task SendTestEMail(string EMail, string Subject, string Markdown)
+		{
+			bool Result = await SendEMail(EMail, Subject, Markdown);
+			string[] TabIDs = ClientEvents.GetTabIDsForLocation("/NeuroCredits/Mail.md");
+			if (TabIDs.Length > 0)
+				await ClientEvents.PushEvent(TabIDs, "TestMailSent", CommonTypes.Encode(Result), true);
+		}
+
+		/// <summary>
+		/// Sends an e-mail to a recipient, using the account configured for the service.
+		/// </summary>
+		/// <param name="EMail">Recipient e-mail address.</param>
+		/// <param name="Subject">Subject header.</param>
+		/// <param name="Markdown">Markdown content.</param>
+		public static async Task<bool> SendEMail(string EMail, string Subject, string Markdown)
+		{
+			try
+			{
+				MailConfiguration Configuration = await MailConfiguration.GetCurrent();
+				if (!Configuration.IsWellDefined)
+					return false;
+
+				Variables Variables = new Variables()
+				{
+					["Host"] = new StringValue(Configuration.Host),
+					["Port"] = new DoubleNumber(Configuration.Port),
+					["UserName"] = new StringValue(Configuration.Account),
+					["Password"] = new StringValue(Configuration.Password),
+					["From"] = new StringValue(Configuration.Address),
+					["To"] = new StringValue(EMail),
+					["Subject"] = new StringValue(Subject),
+					["Markdown"] = new StringValue(Markdown),
+				};
+
+				await Expression.EvalAsync("SendMail(Host,Port,UserName,Password,From,To,Subject,Markdown)", Variables);
+
+				return true;
+			}
+			catch (Exception ex)
+			{
+				Log.Critical(ex);
+				return false;
+			}
 		}
 
 		/// <summary>

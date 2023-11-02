@@ -9,7 +9,6 @@ using Waher.Runtime.Counters;
 using Waher.Content;
 using TAG.Payments.NeuroCredits.Data;
 using System;
-using Waher.Runtime.Counters.CounterObjects;
 
 namespace TAG.Payments.NeuroCredits
 {

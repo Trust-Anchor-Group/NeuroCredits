@@ -23,6 +23,7 @@
     <None Remove="Root\NeuroCredits\InvoiceTemplates\DefaultOrganizationalInvoice.md" />
     <None Remove="Root\NeuroCredits\InvoiceTemplates\DefaultPersonalInvoice.md" />
     <None Remove="Root\NeuroCredits\Logo.png" />
+    <None Remove="Root\NeuroCredits\Mail.md" />
     <None Remove="Root\NeuroCredits\Organizations.md" />
     <None Remove="Root\NeuroCredits\PendingInvoices.md" />
     <None Remove="Root\NeuroCredits\ReceiptTemplates\DefaultOrganizationalReceipt.md" />
@@ -40,6 +41,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Root\NeuroCredits\CancelledInvoices.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Root\NeuroCredits\Mail.md">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Root\NeuroCredits\InvoiceTemplates\DefaultOrganizationalInvoice.md">

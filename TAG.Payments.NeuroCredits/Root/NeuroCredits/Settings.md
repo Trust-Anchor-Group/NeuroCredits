@@ -19,12 +19,13 @@ Interact with, and configure the Neuro-Credits™ service, using any of the opti
 Settings
 -----------
 
-<button type="button" class="posButton" onclick="OpenUrl('General.md')">General Settings...</button>
-<button type="button" class="posButton" onclick="OpenUrl('Accounts.md')">Account Settings...</button>
-<button type="button" class="posButton" onclick="OpenUrl('Organizations.md')">Organization Settings...</button>
+<button type="button" class="posButton" onclick="OpenUrl('General.md')">General...</button>
+<button type="button" class="posButton" onclick="OpenUrl('Mail.md')">Mail...</button>
+<button type="button" class="posButton" onclick="OpenUrl('Accounts.md')">Accounts...</button>
+<button type="button" class="posButton" onclick="OpenUrl('Organizations.md')">Organizations...</button>
 
-Status
-----------
+Invoices
+------------
 
-<button type="button" class="posButton" onclick="OpenUrl('PendingInvoices.md')">Pending Invoices...</button>
-<button type="button" class="posButton" onclick="OpenUrl('CancelledInvoices.md')">Cancelled Invoices...</button>
+<button type="button" class="posButton" onclick="OpenUrl('PendingInvoices.md')">Pending...</button>
+<button type="button" class="posButton" onclick="OpenUrl('CancelledInvoices.md')">Cancelled...</button>
