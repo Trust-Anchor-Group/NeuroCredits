@@ -38,7 +38,7 @@ foreach Invoice in Invoices do
 	]]| ((Invoice.AmountLeft)) [[;
 	]]| ((Invoice.Currency)) [[;
 	]]| ((Invoice.Created)) [[;
-	]]| ((Invoice.DueDate)) [[;
+	]]| ((Invoice.DueDate.ToShortDateString();)) [[;
 	]]| ((Invoice.NrReminders)) [[;
 	]]| ((Invoice.Installment))/((Invoice.NrInstallments)) [[;
 	]]| ((empty(Invoice.NeuroCreditsContractId)?"":"<a href=\"/Contract.md?ID="+Invoice.NeuroCreditsContractId+"\" target=\"_blank\">Contract</a>")) [[;
