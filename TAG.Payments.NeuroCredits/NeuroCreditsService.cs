@@ -468,7 +468,7 @@ namespace TAG.Payments.NeuroCredits
 					["To"] = new StringValue(EMail),
 					["Subject"] = new StringValue(Subject),
 					["Markdown"] = new StringValue(Markdown),
-					["Css"] = new CssDocument(Styles)
+					["Css"] = string.IsNullOrEmpty(Styles) ? ObjectValue.Null : new ObjectValue(new CssDocument(Styles))
 				};
 
 				await Expression.EvalAsync("SendMail(Host,Port,UserName,Password,From,To,Subject,Markdown,Css)", Variables);
