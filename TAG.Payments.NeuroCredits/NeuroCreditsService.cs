@@ -2,11 +2,14 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 using TAG.Payments.NeuroCredits.Data;
 using Waher.Content;
 using Waher.Content.Html.Css;
 using Waher.Content.Markdown;
+using Waher.Content.Multipart;
+using Waher.Content.Xml;
 using Waher.Events;
 using Waher.IoTGateway;
 using Waher.Networking.XMPP;
@@ -17,6 +20,7 @@ using Waher.Runtime.Counters;
 using Waher.Runtime.Inventory;
 using Waher.Script;
 using Waher.Script.Objects;
+using Waher.Script.Objects.VectorSpaces;
 
 namespace TAG.Payments.NeuroCredits
 {
@@ -411,14 +415,66 @@ namespace TAG.Payments.NeuroCredits
 						ObjectId = ReceiptTemplateFileName;
 						Markdown = await MarkdownDocument.Preprocess(ReceiptMarkdown, Settings);
 						await Gateway.SendNotification(Markdown);
-						await SendEMail(EMail, "Receipt, Purchase of Neuro-Credits™", Markdown, Styles);
+						await SendEMail(EMail, "Receipt, Purchase of Neuro-Credits™", Markdown, Styles, null);
 					}
+
+					string Subject = "Invoice" + (Invoice.NrInstallments > 1 ? " " + Invoice.Installment.ToString() : string.Empty) +
+						", Purchase of Neuro-Credits™";
+
+					StringBuilder Reminder = new StringBuilder();
+					DateTime TP = DateTime.UtcNow;
+
+					Reminder.AppendLine("BEGIN:VCALENDAR");
+					Reminder.AppendLine("METHOD:PUBLISH");
+					Reminder.AppendLine("VERSION:2.0");
+					Reminder.AppendLine("PRODID:-//Trust Anchor Group AB//Neuro-Credits//EN");
+					Reminder.AppendLine("BEGIN:VTODO");
+					Reminder.Append("UID:");
+					Reminder.AppendLine(Guid.NewGuid().ToString());
+					Reminder.Append("DTSTAMP:");
+					Reminder.Append(TP.Year.ToString("D4"));
+					Reminder.Append(TP.Month.ToString("D2"));
+					Reminder.Append(TP.Day.ToString("D2"));
+					Reminder.Append('T');
+					Reminder.Append(TP.Hour.ToString("D2"));
+					Reminder.Append(TP.Minute.ToString("D2"));
+					Reminder.Append(TP.Second.ToString("D2"));
+					Reminder.AppendLine("Z");
+					Reminder.AppendLine("SEQUENCE:0");
+					Reminder.Append("DTSTART:");
+					Reminder.Append(Invoice.DueDate.Year.ToString("D4"));
+					Reminder.Append(Invoice.DueDate.Month.ToString("D2"));
+					Reminder.Append(Invoice.DueDate.Day.ToString("D2"));
+					Reminder.AppendLine("T100000");
+					Reminder.Append("DUE:");
+					Reminder.Append(Invoice.DueDate.Year.ToString("D4"));
+					Reminder.Append(Invoice.DueDate.Month.ToString("D2"));
+					Reminder.Append(Invoice.DueDate.Day.ToString("D2"));
+					Reminder.AppendLine("T100000");
+
+					if (!string.IsNullOrEmpty(EMail))
+					{
+						Reminder.AppendLine("ATTENDEE;PARTSTAT=NEEDS-ACTION:");
+						Reminder.Append(" mailto:");
+						Reminder.AppendLine(EMail);
+					}
+
+					Reminder.AppendLine("STATUS:NEEDS-ACTION");
+					Reminder.AppendLine("SUMMARY:Invoice payment");
+					Reminder.Append("DESCRIPTION:");
+					Reminder.AppendLine(Subject.Replace(", Purchase", ",\r\n Purchase"));
+					Reminder.AppendLine("BEGIN:VALARM");
+					Reminder.AppendLine("ACTION:DISPLAY");
+					Reminder.AppendLine("DESCRIPTION:This is a reminder to pay an invoice.");
+					Reminder.AppendLine("TRIGGER:-PT10M");
+					Reminder.AppendLine("END:VALARM");
+					Reminder.AppendLine("END:VTODO");
+					Reminder.AppendLine("END:VCALENDAR");
 
 					ObjectId = InvoiceTemplateFileName;
 					Markdown = await MarkdownDocument.Preprocess(InvoiceMarkdown, Settings);
 					await Gateway.SendNotification(Markdown);
-					await SendEMail(EMail, "Invoice" + (Invoice.NrInstallments > 1 ? " " + Invoice.Installment.ToString() : string.Empty) +
-						", Purchase of Neuro-Credits™", Markdown, Styles);
+					await SendEMail(EMail, Subject, Markdown, Styles, Reminder.ToString());
 				}
 			}
 			catch (Exception ex)
@@ -437,7 +493,7 @@ namespace TAG.Payments.NeuroCredits
 		/// <param name="Markdown">Markdown content.</param>
 		public static async Task SendTestEMail(string EMail, string Subject, string Markdown)
 		{
-			bool Result = await SendEMail(EMail, Subject, Markdown, null);
+			bool Result = await SendEMail(EMail, Subject, Markdown, null, null);
 			string[] TabIDs = ClientEvents.GetTabIDsForLocation("/NeuroCredits/Mail.md");
 			if (TabIDs.Length > 0)
 				await ClientEvents.PushEvent(TabIDs, "TestMailSent", CommonTypes.Encode(Result), true);
@@ -450,13 +506,32 @@ namespace TAG.Payments.NeuroCredits
 		/// <param name="Subject">Subject header.</param>
 		/// <param name="Markdown">Markdown content.</param>
 		/// <param name="Styles">Styles to use in the formatted message.</param>
-		public static async Task<bool> SendEMail(string EMail, string Subject, string Markdown, string Styles)
+		/// <param name="CalendarReminder">Calendar reminder entry.</param>
+		public static async Task<bool> SendEMail(string EMail, string Subject, string Markdown, string Styles, string CalendarReminder)
 		{
 			try
 			{
 				MailConfiguration Configuration = await MailConfiguration.GetCurrent();
 				if (!Configuration.IsWellDefined)
 					return false;
+
+				List<ObjectValue> Attachments = new List<ObjectValue>();
+
+				if (!string.IsNullOrEmpty(Styles))
+					Attachments.Add(new ObjectValue(new CssDocument(Styles)));
+
+				if (!string.IsNullOrEmpty(CalendarReminder))
+				{
+					EmbeddedContent Entry = new EmbeddedContent()
+					{
+						Raw = Encoding.UTF8.GetBytes(CalendarReminder),
+						ContentType = "text/calendar; method=\"PUBLISH\"; component=\"VTODO\"; charset=\"utf-8\"",
+						FileName = "Reminder.ics",
+						Disposition = ContentDisposition.Attachment
+					};
+
+					Attachments.Add(new ObjectValue(Entry));
+				}
 
 				Variables Variables = new Variables()
 				{
@@ -468,10 +543,10 @@ namespace TAG.Payments.NeuroCredits
 					["To"] = new StringValue(EMail),
 					["Subject"] = new StringValue(Subject),
 					["Markdown"] = new StringValue(Markdown),
-					["Css"] = string.IsNullOrEmpty(Styles) ? ObjectValue.Null : new ObjectValue(new CssDocument(Styles))
+					["Attachments"] = new ObjectVector(Attachments.ToArray())
 				};
 
-				await Expression.EvalAsync("SendMail(Host,Port,UserName,Password,From,To,Subject,Markdown,Css)", Variables);
+				await Expression.EvalAsync("SendMail(Host,Port,UserName,Password,From,To,Subject,Markdown,Attachments)", Variables);
 
 				return true;
 			}
