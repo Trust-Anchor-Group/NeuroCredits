@@ -5,6 +5,7 @@ using System.IO;
 using System.Threading.Tasks;
 using TAG.Payments.NeuroCredits.Data;
 using Waher.Content;
+using Waher.Content.Html.Css;
 using Waher.Content.Markdown;
 using Waher.Events;
 using Waher.IoTGateway;
@@ -370,6 +371,9 @@ namespace TAG.Payments.NeuroCredits
 
 			string InvoiceTemplateFileName;
 			string ReceiptTemplateFileName;
+			string StylesFileName;
+
+			StylesFileName = Path.Combine(Gateway.RootFolder, "NeuroCredits", "MailStyles", "Default.css");
 
 			if (Details.OrganizationalCredit)
 			{
@@ -385,6 +389,8 @@ namespace TAG.Payments.NeuroCredits
 			string ObjectId = null;
 			try
 			{
+				string Styles = await Resources.ReadAllTextAsync(StylesFileName);
+
 				ObjectId = ReceiptTemplateFileName;
 				string ReceiptMarkdown = await Resources.ReadAllTextAsync(ReceiptTemplateFileName);
 
@@ -405,14 +411,14 @@ namespace TAG.Payments.NeuroCredits
 						ObjectId = ReceiptTemplateFileName;
 						Markdown = await MarkdownDocument.Preprocess(ReceiptMarkdown, Settings);
 						await Gateway.SendNotification(Markdown);
-						await SendEMail(EMail, "Receipt, Purchase of Neuro-Credits™", Markdown);
+						await SendEMail(EMail, "Receipt, Purchase of Neuro-Credits™", Markdown, Styles);
 					}
 
 					ObjectId = InvoiceTemplateFileName;
 					Markdown = await MarkdownDocument.Preprocess(InvoiceMarkdown, Settings);
 					await Gateway.SendNotification(Markdown);
 					await SendEMail(EMail, "Invoice" + (Invoice.NrInstallments > 1 ? " " + Invoice.Installment.ToString() : string.Empty) +
-						", Purchase of Neuro-Credits™", Markdown);
+						", Purchase of Neuro-Credits™", Markdown, Styles);
 				}
 			}
 			catch (Exception ex)
@@ -431,7 +437,7 @@ namespace TAG.Payments.NeuroCredits
 		/// <param name="Markdown">Markdown content.</param>
 		public static async Task SendTestEMail(string EMail, string Subject, string Markdown)
 		{
-			bool Result = await SendEMail(EMail, Subject, Markdown);
+			bool Result = await SendEMail(EMail, Subject, Markdown, null);
 			string[] TabIDs = ClientEvents.GetTabIDsForLocation("/NeuroCredits/Mail.md");
 			if (TabIDs.Length > 0)
 				await ClientEvents.PushEvent(TabIDs, "TestMailSent", CommonTypes.Encode(Result), true);
@@ -443,7 +449,8 @@ namespace TAG.Payments.NeuroCredits
 		/// <param name="EMail">Recipient e-mail address.</param>
 		/// <param name="Subject">Subject header.</param>
 		/// <param name="Markdown">Markdown content.</param>
-		public static async Task<bool> SendEMail(string EMail, string Subject, string Markdown)
+		/// <param name="Styles">Styles to use in the formatted message.</param>
+		public static async Task<bool> SendEMail(string EMail, string Subject, string Markdown, string Styles)
 		{
 			try
 			{
@@ -461,9 +468,10 @@ namespace TAG.Payments.NeuroCredits
 					["To"] = new StringValue(EMail),
 					["Subject"] = new StringValue(Subject),
 					["Markdown"] = new StringValue(Markdown),
+					["Css"] = new CssDocument(Styles)
 				};
 
-				await Expression.EvalAsync("SendMail(Host,Port,UserName,Password,From,To,Subject,Markdown)", Variables);
+				await Expression.EvalAsync("SendMail(Host,Port,UserName,Password,From,To,Subject,Markdown,Css)", Variables);
 
 				return true;
 			}

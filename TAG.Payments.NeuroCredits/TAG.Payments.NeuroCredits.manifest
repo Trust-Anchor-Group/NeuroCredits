@@ -25,6 +25,9 @@
 				<Content fileName="DefaultOrganizationalInvoice.md"/>
 				<Content fileName="DefaultPersonalInvoice.md"/>
 			</Folder>
+			<Folder name="MailStyles">
+				<Content fileName="Default.css"/>
+			</Folder>
 			<Folder name="ReceiptTemplates">
 				<Content fileName="DefaultOrganizationalReceipt.md"/>
 				<Content fileName="DefaultPersonalReceipt.md"/>
