@@ -9,9 +9,9 @@ using Waher.Content;
 using Waher.Content.Html.Css;
 using Waher.Content.Markdown;
 using Waher.Content.Multipart;
-using Waher.Content.Xml;
 using Waher.Events;
 using Waher.IoTGateway;
+using Waher.IoTGateway.Setup;
 using Waher.Networking.XMPP;
 using Waher.Persistence;
 using Waher.Persistence.Filters;
@@ -402,6 +402,8 @@ namespace TAG.Payments.NeuroCredits
 				string InvoiceMarkdown = await Resources.ReadAllTextAsync(InvoiceTemplateFileName);
 				string Markdown;
 
+				MailConfiguration MailConfiguration = await MailConfiguration.GetCurrent();
+
 				foreach (Invoice Invoice in Invoices)
 				{
 					Variables Variables = new Variables()
@@ -421,60 +423,100 @@ namespace TAG.Payments.NeuroCredits
 					string Subject = "Invoice" + (Invoice.NrInstallments > 1 ? " " + Invoice.Installment.ToString() : string.Empty) +
 						", Purchase of Neuro-Credits™";
 
-					StringBuilder Reminder = new StringBuilder();
-					DateTime TP = DateTime.UtcNow;
-
-					Reminder.AppendLine("BEGIN:VCALENDAR");
-					Reminder.AppendLine("METHOD:PUBLISH");
-					Reminder.AppendLine("VERSION:2.0");
-					Reminder.AppendLine("PRODID:-//Trust Anchor Group AB//Neuro-Credits//EN");
-					Reminder.AppendLine("BEGIN:VTODO");
-					Reminder.Append("UID:");
-					Reminder.AppendLine(Guid.NewGuid().ToString());
-					Reminder.Append("DTSTAMP:");
-					Reminder.Append(TP.Year.ToString("D4"));
-					Reminder.Append(TP.Month.ToString("D2"));
-					Reminder.Append(TP.Day.ToString("D2"));
-					Reminder.Append('T');
-					Reminder.Append(TP.Hour.ToString("D2"));
-					Reminder.Append(TP.Minute.ToString("D2"));
-					Reminder.Append(TP.Second.ToString("D2"));
-					Reminder.AppendLine("Z");
-					Reminder.AppendLine("SEQUENCE:0");
-					Reminder.Append("DTSTART:");
-					Reminder.Append(Invoice.DueDate.Year.ToString("D4"));
-					Reminder.Append(Invoice.DueDate.Month.ToString("D2"));
-					Reminder.Append(Invoice.DueDate.Day.ToString("D2"));
-					Reminder.AppendLine("T100000");
-					Reminder.Append("DUE:");
-					Reminder.Append(Invoice.DueDate.Year.ToString("D4"));
-					Reminder.Append(Invoice.DueDate.Month.ToString("D2"));
-					Reminder.Append(Invoice.DueDate.Day.ToString("D2"));
-					Reminder.AppendLine("T100000");
-
-					if (!string.IsNullOrEmpty(EMail))
-					{
-						Reminder.AppendLine("ATTENDEE;PARTSTAT=NEEDS-ACTION:");
-						Reminder.Append(" mailto:");
-						Reminder.AppendLine(EMail);
-					}
-
-					Reminder.AppendLine("STATUS:NEEDS-ACTION");
-					Reminder.AppendLine("SUMMARY:Invoice payment");
-					Reminder.Append("DESCRIPTION:");
-					Reminder.AppendLine(Subject.Replace(", Purchase", ",\r\n Purchase"));
-					Reminder.AppendLine("BEGIN:VALARM");
-					Reminder.AppendLine("ACTION:DISPLAY");
-					Reminder.AppendLine("DESCRIPTION:This is a reminder to pay an invoice.");
-					Reminder.AppendLine("TRIGGER:-PT10M");
-					Reminder.AppendLine("END:VALARM");
-					Reminder.AppendLine("END:VTODO");
-					Reminder.AppendLine("END:VCALENDAR");
-
 					ObjectId = InvoiceTemplateFileName;
 					Markdown = await MarkdownDocument.Preprocess(InvoiceMarkdown, Settings);
 					await Gateway.SendNotification(Markdown);
-					await SendEMail(EMail, Subject, Markdown, Styles, Reminder.ToString());
+
+					if (MailConfiguration.IsWellDefined && !string.IsNullOrEmpty(EMail))
+					{
+						MarkdownDocument Doc = await MarkdownDocument.CreateAsync(Markdown, Settings);
+						string HTML = await Doc.GenerateHTML();
+						string Text = await Doc.GeneratePlainText();
+
+						int i = HTML.IndexOf("<html");
+						if (i > 0)
+							HTML = HTML.Substring(i);
+
+						StringBuilder Reminder = new StringBuilder();
+						DateTime TP = DateTime.UtcNow;
+						TimeZoneInfo TZ = TimeZoneInfo.Local;
+						TimeSpan TS;
+
+						AppendCalendar(Reminder, "BEGIN:VCALENDAR");
+						AppendCalendar(Reminder, "PRODID:-//Trust Anchor Group AB//Neuro-Credits//EN");
+						AppendCalendar(Reminder, "VERSION:2.0");
+						AppendCalendar(Reminder, "CALSCALE:GREGORIAN");
+						AppendCalendar(Reminder, "METHOD:REQUEST");
+						AppendCalendar(Reminder, "BEGIN:VTIMEZONE");
+						AppendCalendar(Reminder, "TZID:" + TZ.Id);
+
+						foreach (TimeZoneInfo.AdjustmentRule Rule in TZ.GetAdjustmentRules())
+						{
+							if (Rule.DateStart > TP.Date || Rule.DateEnd < TP.Date)
+								continue;
+
+							AppendCalendar(Reminder, "BEGIN:STANDARD");
+							TS = TZ.BaseUtcOffset + Rule.DaylightDelta;
+							AppendCalendar(Reminder, "TZOFFSETFROM:" + TS.Hours.ToString("D2") + TS.Minutes.ToString("D2"));
+							TS = TZ.BaseUtcOffset;
+							AppendCalendar(Reminder, "TZOFFSETTO:" + TS.Hours.ToString("D2") + TS.Minutes.ToString("D2"));
+							AppendCalendar(Reminder, "TZNAME:" + TS.Hours.ToString("D2") + (TS.Minutes == 0 ? string.Empty : TS.Minutes.ToString("D2")));
+
+							AppendCalendar(Reminder, "DTSTART:" + Rule.DateStart.Year.ToString("D4") + Rule.DateStart.Month.ToString("D2") +
+								Rule.DateStart.Day.ToString("D2") + "T100000");
+							AppendCalendar(Reminder, "END:STANDARD");
+
+							AppendCalendar(Reminder, "BEGIN:DAYLIGHT");
+							TS = TZ.BaseUtcOffset + Rule.DaylightDelta;
+							AppendCalendar(Reminder, "TZOFFSETFROM:" + TS.Hours.ToString("D2") + TS.Minutes.ToString("D2"));
+							AppendCalendar(Reminder, "TZOFFSETTO:" + TS.Hours.ToString("D2") + TS.Minutes.ToString("D2"));
+							AppendCalendar(Reminder, "TZNAME:" + TS.Hours.ToString("D2") + (TS.Minutes == 0 ? string.Empty : TS.Minutes.ToString("D2")));
+
+							AppendCalendar(Reminder, "DTSTART:" + Rule.DateStart.Year.ToString("D4") + 
+								Rule.DaylightTransitionStart.Month.ToString("D2") + Rule.DaylightTransitionStart.Day.ToString("D2") + "T" + 
+								Rule.DaylightTransitionStart.TimeOfDay.Hour.ToString("D2") + 
+								Rule.DaylightTransitionStart.TimeOfDay.Minute.ToString("D2") + 
+								Rule.DaylightTransitionStart.TimeOfDay.Second.ToString("D2"));
+							AppendCalendar(Reminder, "END:DAYLIGHT");
+						}
+
+						AppendCalendar(Reminder, "END:VTIMEZONE");
+						AppendCalendar(Reminder, "BEGIN:VEVENT");
+						AppendCalendar(Reminder, "DTSTART;TZID=" + TZ.Id + ":" + Invoice.DueDate.Year.ToString("D4")+
+							Invoice.DueDate.Month.ToString("D2") + Invoice.DueDate.Day.ToString("D2") + "T100000");
+						AppendCalendar(Reminder, "DTEND;TZID=" + TZ.Id + ":" + Invoice.DueDate.Year.ToString("D4") + 
+							Invoice.DueDate.Month.ToString("D2") + Invoice.DueDate.Day.ToString("D2") + "T103000");
+						AppendCalendar(Reminder, "DTSTAMP:" + TP.Year.ToString("D4") + TP.Month.ToString("D2") + 
+							TP.Day.ToString("D2") + "T" + TP.Hour.ToString("D2") + TP.Minute.ToString("D2") + 
+							TP.Second.ToString("D2") + "Z");
+						
+						string Organizer = DomainConfiguration.Instance.HumanReadableName;
+						if (string.IsNullOrEmpty(Organizer))
+							Organizer = Gateway.Domain;
+
+						AppendCalendar(Reminder, "ORGANIZER;CN=" + Organizer + ":mailto:" + MailConfiguration.Address);
+						AppendCalendar(Reminder, "UID:" + Guid.NewGuid().ToString());
+						AppendCalendar(Reminder, "ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=FALSE;CN=" + 
+							Invoice.PersonalName + ":mailto:" + EMail);
+						AppendCalendar(Reminder, "DESCRIPTION:" + Text.Replace("\r\n", "\n").Replace('\r', '\n').Replace("\n", "\\n"));
+						AppendCalendar(Reminder, "X-ALT-DESC;FMTTYPE=text/html:" + HTML.Replace("\r\n", "\n").Replace('\r', '\n').Replace("\n", "\\n"));
+						AppendCalendar(Reminder, "LAST-MODIFIED:" + TP.Year.ToString("D4") + TP.Month.ToString("D2") +
+							TP.Day.ToString("D2") + "T" + TP.Hour.ToString("D2") + TP.Minute.ToString("D2") + TP.Second.ToString("D2") + "Z");
+						AppendCalendar(Reminder, "LOCATION:");
+						AppendCalendar(Reminder, "SEQUENCE:0");
+						AppendCalendar(Reminder, "STATUS:CONFIRMED");
+						AppendCalendar(Reminder, "SUMMARY:" + Subject);
+						AppendCalendar(Reminder, "TRANSP:TRANSPARENT");
+						AppendCalendar(Reminder, "BEGIN:VALARM");
+						AppendCalendar(Reminder, "DESCRIPTION:" + Subject);
+						AppendCalendar(Reminder, "ACTION:DISPLAY");
+						AppendCalendar(Reminder, "TRIGGER:-PT10M");
+						AppendCalendar(Reminder, "END:VALARM");
+						AppendCalendar(Reminder, "END:VEVENT");
+						AppendCalendar(Reminder, "END:VCALENDAR");
+
+						await SendEMail(EMail, Subject, Markdown, Styles, Reminder.ToString());
+					}
 				}
 			}
 			catch (Exception ex)
@@ -483,6 +525,30 @@ namespace TAG.Payments.NeuroCredits
 			}
 
 			return new PaymentResult(Amount, Currency);
+		}
+
+		private static void AppendCalendar(StringBuilder Calendar, string Row)
+		{
+			int RowLen = 75;
+			int i = 0;
+			int Left = Row.Length;
+
+			while (true)
+			{
+				if (Left > RowLen)
+				{
+					Calendar.AppendLine(Row.Substring(i, RowLen));
+					i += RowLen;
+					Left -= RowLen;
+					RowLen = 74;
+					Calendar.Append(' ');
+				}
+				else
+				{
+					Calendar.AppendLine(Row.Substring(i));
+					break;
+				}
+			}
 		}
 
 		/// <summary>
@@ -525,7 +591,7 @@ namespace TAG.Payments.NeuroCredits
 					EmbeddedContent Entry = new EmbeddedContent()
 					{
 						Raw = Encoding.UTF8.GetBytes(CalendarReminder),
-						ContentType = "text/calendar; method=\"PUBLISH\"; component=\"VTODO\"; charset=\"utf-8\"",
+						ContentType = "text/calendar; method=\"REQUEST\"; component=\"VTODO\"; charset=\"utf-8\"",
 						FileName = "Reminder.ics",
 						Disposition = ContentDisposition.Attachment
 					};
