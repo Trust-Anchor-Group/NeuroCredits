@@ -65,6 +65,21 @@ AddStringRow("Country",Invoice.Country);
 | Phone Number:    | [{{Invoice.PhoneNumber}}](tel:{{Invoice.PhoneNumber}})                  |
 | e-Mail Address:  | [{{Invoice.EMail}}](mailto:{{Invoice.EMail}})                           |
 
+| Sender (Seller), and payment information                                      ||
+|:-----------------|:------------------------------------------------------------|
+| Name:            | {{Billing.Sender}}                                          |
+| Tax (VAT) Nr:    | {{Billing.TaxNr}}                                           |
+| Contact e-mail:  | [{{Billing.ContactEMail}}](mailto:{{Billing.ContactEMail}}) |
+{{
+if !empty(Billing.ContactPhone) then AddStringRow("Contact phone","<tel:"+Billing.ContactPhone+">");
+AddStringRow("Bank Account",Billing.BankAccount);
+AddStringRow("IBAN",Billing.Iban);
+AddStringRow("Account holder's name",Billing.BankAccountName);
+AddStringRow("BIC or SWIFT",Billing.BankIdentifier);
+AddStringRow("Name of Bank",Billing.BankName);
+AddStringRow("Branch address",Billing.BranchAddress);
+}}
+
 {{
 ]]```[[;
 PayUrl:="iotsc:"+TAG.Payments.NeuroCredits.NeuroCreditsService.SellEDalerTemplateId;

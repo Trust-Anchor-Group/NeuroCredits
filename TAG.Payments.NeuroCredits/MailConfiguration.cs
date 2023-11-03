@@ -4,14 +4,14 @@ using Waher.Runtime.Settings;
 namespace TAG.Payments.NeuroCredits
 {
 	/// <summary>
-	/// Contains the service configuration.
+	/// Contains the e-mail configuration.
 	/// </summary>
 	public class MailConfiguration
 	{
 		private static MailConfiguration current = null;
 
 		/// <summary>
-		/// Contains the service configuration.
+		/// Contains the e-mail configuration.
 		/// </summary>
 		public MailConfiguration()
 		{

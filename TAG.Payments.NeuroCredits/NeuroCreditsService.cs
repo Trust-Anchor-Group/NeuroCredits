@@ -103,8 +103,8 @@ namespace TAG.Payments.NeuroCredits
 
 		private static async Task<bool> SupportsCurrency(CaseInsensitiveString Currency)
 		{
-			ServiceConfiguration Configuration = await ServiceConfiguration.GetCurrent();
-			return Configuration.SupportsCurrency(Currency);
+			ServiceConfiguration ServiceConfiguration = await ServiceConfiguration.GetCurrent();
+			return ServiceConfiguration.SupportsCurrency(Currency);
 		}
 
 		#endregion
@@ -129,8 +129,12 @@ namespace TAG.Payments.NeuroCredits
 		/// <returns>If service provider can be used.</returns>
 		public async Task<bool> CanBuyEDaler(CaseInsensitiveString AccountName)
 		{
-			ServiceConfiguration Configuration = await ServiceConfiguration.GetCurrent();
-			if (!Configuration.IsWellDefined)
+			ServiceConfiguration ServiceConfiguration = await ServiceConfiguration.GetCurrent();
+			if (!ServiceConfiguration.IsWellDefined)
+				return false;
+
+			BillingConfiguration BillingConfiguration = await BillingConfiguration.GetCurrent();
+			if (!BillingConfiguration.IsWellDefined)
 				return false;
 
 			GenericObject ID = await GetLegalID(AccountName);
@@ -140,7 +144,7 @@ namespace TAG.Payments.NeuroCredits
 			PersonalInformation PI = new PersonalInformation(ID);
 			string WalletCurrency = await ServiceConfiguration.GetCurrencyOfAccount(AccountName);
 
-			CreditDetails Details = await MaxCreditAmountAuthorized(PI, Configuration, WalletCurrency);
+			CreditDetails Details = await MaxCreditAmountAuthorized(PI, ServiceConfiguration, WalletCurrency);
 
 			return Details.HasCredit;
 		}
@@ -242,12 +246,16 @@ namespace TAG.Payments.NeuroCredits
 			if (Amount != Math.Floor(Amount))
 				return new PaymentResult("Only whole amounts of Neuro-Credits™ permitted.");
 
-			ServiceConfiguration Configuration = await ServiceConfiguration.GetCurrent();
-			if (!Configuration.IsWellDefined)
+			ServiceConfiguration ServiceConfiguration = await ServiceConfiguration.GetCurrent();
+			if (!ServiceConfiguration.IsWellDefined)
+				return new PaymentResult("Neuro-Credits™ service not configured properly.");
+
+			BillingConfiguration BillingConfiguration = await BillingConfiguration.GetCurrent();
+			if (!BillingConfiguration.IsWellDefined)
 				return new PaymentResult("Neuro-Credits™ service not configured properly.");
 
 			PersonalInformation PI = new PersonalInformation(IdentityProperties);
-			CreditDetails Details = await MaxCreditAmountAuthorized(PI, Configuration, Currency);
+			CreditDetails Details = await MaxCreditAmountAuthorized(PI, ServiceConfiguration, Currency);
 
 			if (!Details.HasCredit)
 				return new PaymentResult("Not authorized to buy Neuro-Credits™. Contact your operator to receive authorization to buy Neuro-Credits™. If there are outstanding payments, you might need to cleared those first.");
@@ -408,7 +416,8 @@ namespace TAG.Payments.NeuroCredits
 				{
 					Variables Variables = new Variables()
 					{
-						["Invoice"] = Invoice
+						["Invoice"] = Invoice,
+						["Billing"] = BillingConfiguration,
 					};
 					MarkdownSettings Settings = new MarkdownSettings(null, false, Variables);
 
@@ -639,8 +648,12 @@ namespace TAG.Payments.NeuroCredits
 			IDictionary<CaseInsensitiveString, CaseInsensitiveString> IdentityProperties,
 			string SuccessUrl, string FailureUrl, string CancelUrl, ClientUrlEventHandler ClientUrlCallback, object State)
 		{
-			ServiceConfiguration Configuration = await ServiceConfiguration.GetCurrent();
-			if (!Configuration.IsWellDefined)
+			ServiceConfiguration ServiceConfiguration = await ServiceConfiguration.GetCurrent();
+			if (!ServiceConfiguration.IsWellDefined)
+				return new IDictionary<CaseInsensitiveString, object>[0];
+
+			BillingConfiguration BillingConfiguration = await BillingConfiguration.GetCurrent();
+			if (!BillingConfiguration.IsWellDefined)
 				return new IDictionary<CaseInsensitiveString, object>[0];
 
 			PersonalInformation PI = new PersonalInformation(IdentityProperties);
@@ -650,7 +663,7 @@ namespace TAG.Payments.NeuroCredits
 				return new IDictionary<CaseInsensitiveString, object>[0];
 
 			string WalletCurrency = await ServiceConfiguration.GetCurrencyOfAccount(AccountName);
-			CreditDetails Details = await MaxCreditAmountAuthorized(PI, Configuration, WalletCurrency);
+			CreditDetails Details = await MaxCreditAmountAuthorized(PI, ServiceConfiguration, WalletCurrency);
 
 			return new IDictionary<CaseInsensitiveString, object>[]
 			{
@@ -694,8 +707,8 @@ namespace TAG.Payments.NeuroCredits
 		/// <returns>If service provider can be used.</returns>
 		public async Task<bool> CanSellEDaler(CaseInsensitiveString AccountName)
 		{
-			ServiceConfiguration Configuration = await ServiceConfiguration.GetCurrent();
-			if (!Configuration.IsWellDefined)
+			ServiceConfiguration ServiceConfiguration = await ServiceConfiguration.GetCurrent();
+			if (!ServiceConfiguration.IsWellDefined)
 				return false;
 
 			// ID:=select generic top 1 * from "LegalIdentities" where Account=AccountName and State="Approved" order by Created desc;
@@ -738,8 +751,8 @@ namespace TAG.Payments.NeuroCredits
 			if (Ticks != Math.Floor(Ticks))
 				return new PaymentResult("Amount contains too many decimals.");
 
-			ServiceConfiguration Configuration = await ServiceConfiguration.GetCurrent();
-			if (!Configuration.IsWellDefined)
+			ServiceConfiguration ServiceConfiguration = await ServiceConfiguration.GetCurrent();
+			if (!ServiceConfiguration.IsWellDefined)
 				return new PaymentResult("Neuro-Credits™ service not configured properly.");
 
 			PersonalInformation PI = new PersonalInformation(IdentityProperties);
@@ -869,8 +882,8 @@ namespace TAG.Payments.NeuroCredits
 			IDictionary<CaseInsensitiveString, CaseInsensitiveString> IdentityProperties,
 			string SuccessUrl, string FailureUrl, string CancelUrl, ClientUrlEventHandler ClientUrlCallback, object State)
 		{
-			ServiceConfiguration Configuration = await ServiceConfiguration.GetCurrent();
-			if (!Configuration.IsWellDefined)
+			ServiceConfiguration ServiceConfiguration = await ServiceConfiguration.GetCurrent();
+			if (!ServiceConfiguration.IsWellDefined)
 				return new IDictionary<CaseInsensitiveString, object>[0];
 
 			PersonalInformation PI = new PersonalInformation(IdentityProperties);

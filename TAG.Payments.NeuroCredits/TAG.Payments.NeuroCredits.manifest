@@ -4,6 +4,7 @@
 	<Folder name="Root">
 		<Folder name="NeuroCredits">
 			<Content fileName="Accounts.md"/>
+			<Content fileName="Billing.md"/>
 			<Content fileName="CancelledInvoices.md"/>
 			<Content fileName="General.md"/>
 			<Content fileName="Logo.png"/>

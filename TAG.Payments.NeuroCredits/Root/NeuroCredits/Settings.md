@@ -21,6 +21,7 @@ Settings
 
 <button type="button" class="posButton" onclick="OpenUrl('General.md')">General...</button>
 <button type="button" class="posButton" onclick="OpenUrl('Mail.md')">Mail...</button>
+<button type="button" class="posButton" onclick="OpenUrl('Billing.md')">Billing...</button>
 <button type="button" class="posButton" onclick="OpenUrl('Accounts.md')">Accounts...</button>
 <button type="button" class="posButton" onclick="OpenUrl('Organizations.md')">Organizations...</button>
 

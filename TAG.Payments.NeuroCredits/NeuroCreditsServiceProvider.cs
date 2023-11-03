@@ -99,9 +99,10 @@ namespace TAG.Payments.NeuroCredits
 		/// <returns>Available payment services.</returns>
 		public async Task<IBuyEDalerService[]> GetServicesForBuyingEDaler(CaseInsensitiveString Currency, CaseInsensitiveString Country)
 		{
-			ServiceConfiguration Config = await ServiceConfiguration.GetCurrent();
+			ServiceConfiguration ServiceConfiguration = await ServiceConfiguration.GetCurrent();
+			BillingConfiguration BillingConfiguration = await BillingConfiguration.GetCurrent();
 
-			if (Config.IsWellDefined)
+			if (ServiceConfiguration.IsWellDefined && BillingConfiguration.IsWellDefined)
 			{
 				return new IBuyEDalerService[]
 				{
@@ -146,9 +147,9 @@ namespace TAG.Payments.NeuroCredits
 		/// <returns>Available payment services.</returns>
 		public async Task<ISellEDalerService[]> GetServicesForSellingEDaler(CaseInsensitiveString Currency, CaseInsensitiveString Country)
 		{
-			ServiceConfiguration Config = await ServiceConfiguration.GetCurrent();
+			ServiceConfiguration ServiceConfiguration = await ServiceConfiguration.GetCurrent();
 
-			if (Config.IsWellDefined)
+			if (ServiceConfiguration.IsWellDefined)
 			{
 				return new ISellEDalerService[]
 				{
