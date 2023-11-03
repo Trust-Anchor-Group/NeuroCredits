@@ -434,7 +434,7 @@ namespace TAG.Payments.NeuroCredits.Data
 			get
 			{
 				StringBuilder sb = new StringBuilder();
-				bool First = false;
+				bool First = true;
 
 				Append(sb, this.FirstName, " ", ref First);
 				Append(sb, this.MiddleName, " ", ref First);
