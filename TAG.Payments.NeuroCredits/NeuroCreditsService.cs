@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using TAG.Payments.NeuroCredits.Configuration;
 using TAG.Payments.NeuroCredits.Data;
 using Waher.Content;
 using Waher.Content.Html.Css;
@@ -24,10 +25,10 @@ using Waher.Script.Objects.VectorSpaces;
 
 namespace TAG.Payments.NeuroCredits
 {
-	/// <summary>
-	/// Serivce for Neuro-Credits™
-	/// </summary>
-	public class NeuroCreditsService : IBuyEDalerService, ISellEDalerService
+    /// <summary>
+    /// Serivce for Neuro-Credits™
+    /// </summary>
+    public class NeuroCreditsService : IBuyEDalerService, ISellEDalerService
 	{
 		private const string buyEDalerTemplateIdDev = "2cd3fe8d-1b5e-ab78-b459-dc33ff467d20@legal.";    // For local development, you need to republish the contracts on the local development neuron,
 		private const string sellEDalerTemplateIdDev = "2ccae7dd-bea4-cdb1-ec97-0d1b0277db08@legal.";   // and replace these values with your local Contract IDs. Do not check those IDs into the repo.

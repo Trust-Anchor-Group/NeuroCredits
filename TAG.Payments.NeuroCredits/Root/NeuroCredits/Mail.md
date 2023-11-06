@@ -33,7 +33,7 @@ if exists(Posted) then
 	SetSetting("TAG.Payments.NeuroCredits.SMTP.Password",Posted.Password);
 	SetSetting("TAG.Payments.NeuroCredits.SMTP.TestRecipient",Posted.TestRecipient);
 
-	TAG.Payments.NeuroCredits.MailConfiguration.InvalidateCurrent();
+	TAG.Payments.NeuroCredits.Configuration.MailConfiguration.InvalidateCurrent();
 
 	if !empty(Posted.TestRecipient) then
 	(

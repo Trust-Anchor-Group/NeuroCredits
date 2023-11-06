@@ -27,6 +27,10 @@ if exists(Posted) then
 	SetSetting("TAG.Payments.NeuroCredits.Billing.TaxNr",Posted.TaxNr);
 	SetSetting("TAG.Payments.NeuroCredits.Billing.ContactEMail",Posted.ContactEMail);
 	SetSetting("TAG.Payments.NeuroCredits.Billing.ContactPhone",Posted.ContactPhone);
+	SetSetting("TAG.Payments.NeuroCredits.Billing.Reference",Posted.Reference);
+	SetSetting("TAG.Payments.NeuroCredits.Billing.SenderAddress",Posted.SenderAddress);
+	SetSetting("TAG.Payments.NeuroCredits.Billing.SenderCountry",Posted.SenderCountry);
+	SetSetting("TAG.Payments.NeuroCredits.Billing.WebPage",Posted.WebPage);
 	SetSetting("TAG.Payments.NeuroCredits.Billing.BankAccount",Posted.BankAccount);
 	SetSetting("TAG.Payments.NeuroCredits.Billing.Iban",Posted.Iban);
 	SetSetting("TAG.Payments.NeuroCredits.Billing.BankAccountName",Posted.BankAccountName);
@@ -34,7 +38,7 @@ if exists(Posted) then
 	SetSetting("TAG.Payments.NeuroCredits.Billing.BankName",Posted.BankName);
 	SetSetting("TAG.Payments.NeuroCredits.Billing.BranchAddress",Posted.BranchAddress);
 
-	TAG.Payments.NeuroCredits.BillingConfiguration.InvalidateCurrent();
+	TAG.Payments.NeuroCredits.Configuration.BillingConfiguration.InvalidateCurrent();
 
 	SeeOther("Billing.md");
 );
@@ -58,6 +62,26 @@ if exists(Posted) then
 <p>
 <label for="ContactPhone">Contact phone:</label>  
 <input id="ContactPhone" name="ContactPhone" type="tel" value="{{GetSetting('TAG.Payments.NeuroCredits.Billing.ContactPhone','')}}"/>
+</p>
+
+<p>
+<label for="Reference">Reference person:</label>  
+<input id="Reference" name="Reference" type="text" value="{{GetSetting('TAG.Payments.NeuroCredits.Billing.Reference','')}}"/>
+</p>
+
+<p>
+<label for="SenderAddress">Sender Address:</label>  
+<input id="SenderAddress" name="SenderAddress" type="text" required value="{{GetSetting('TAG.Payments.NeuroCredits.Billing.SenderAddress','')}}"/>
+</p>
+
+<p>
+<label for="SenderCountry">Sender Country:</label>  
+<input id="SenderCountry" name="SenderCountry" type="text" required value="{{GetSetting('TAG.Payments.NeuroCredits.Billing.SenderCountry','')}}"/>
+</p>
+
+<p>
+<label for="WebPage">Web Page:</label>  
+<input id="WebPage" name="WebPage" type="url" value="{{GetSetting('TAG.Payments.NeuroCredits.Billing.WebPage','')}}"/>
 </p>
 
 <p>

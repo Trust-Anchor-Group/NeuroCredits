@@ -1,16 +1,17 @@
 ﻿using Paiwise;
 using System;
 using System.Threading.Tasks;
+using TAG.Payments.NeuroCredits.Configuration;
 using Waher.IoTGateway;
 using Waher.Persistence;
 using Waher.Runtime.Inventory;
 
 namespace TAG.Payments.NeuroCredits
 {
-	/// <summary>
-	/// Serivce provider for Neuro-Credits™
-	/// </summary>
-	public class NeuroCreditsServiceProvider : IConfigurableModule, IBuyEDalerServiceProvider, ISellEDalerServiceProvider
+    /// <summary>
+    /// Serivce provider for Neuro-Credits™
+    /// </summary>
+    public class NeuroCreditsServiceProvider : IConfigurableModule, IBuyEDalerServiceProvider, ISellEDalerServiceProvider
 	{
 		/// <summary>
 		/// Serivce provider for Neuro-Credits™

@@ -38,7 +38,7 @@ foreach Organization in Organizations do
 	]]| ((Organization.Period)) [[;
 	]]| ((Account.PeriodInterest)) % [[;
 	]]| ((Organization.MaxInstallments)) [[;
-	]]| ((TAG.Payments.NeuroCredits.ServiceConfiguration.CurrentOrganizationDebt(Organization.OrganizationNumber,Organization.OrganizationCountry);)) [[;
+	]]| ((TAG.Payments.NeuroCredits.Configuration.ServiceConfiguration.CurrentOrganizationDebt(Organization.OrganizationNumber,Organization.OrganizationCountry);)) [[;
 	]]| <button type="button" class="posButtonSm" data-objectid="((Organization.ObjectId))" onclick="EditOrganization(this)">Edit</button> [[;
 	]]| <button type="button" class="negButtonSm" data-objectid="((Organization.ObjectId))" onclick="DeleteOrganization(this)">Delete</button> |[[;
 	]]

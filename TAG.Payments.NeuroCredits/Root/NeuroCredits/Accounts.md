@@ -36,7 +36,7 @@ foreach Account in Accounts do
 	]]| ((Account.Period)) [[;
 	]]| ((Account.PeriodInterest)) % [[;
 	]]| ((Account.MaxInstallments)) [[;
-	]]| ((TAG.Payments.NeuroCredits.ServiceConfiguration.CurrentPersonalDebt(Account.PersonalNumber,Account.Country);)) [[;
+	]]| ((TAG.Payments.NeuroCredits.Configuration.ServiceConfiguration.CurrentPersonalDebt(Account.PersonalNumber,Account.Country);)) [[;
 	]]| <button type="button" class="posButtonSm" data-objectid="((Account.ObjectId))" onclick="EditAccount(this)">Edit</button> [[;
 	]]| <button type="button" class="negButtonSm" data-objectid="((Account.ObjectId))" onclick="DeleteAccount(this)">Delete</button> [[;
 	]]|

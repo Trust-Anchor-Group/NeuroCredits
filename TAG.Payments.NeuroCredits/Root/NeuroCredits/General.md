@@ -36,7 +36,7 @@ if exists(Posted) then
 	SetSetting("TAG.Payments.NeuroCredits.PeriodInterest",Num(Posted.PeriodInterest));
 	SetSetting("TAG.Payments.NeuroCredits.MaxInstallments",Num(Posted.MaxInstallments));
 
-	TAG.Payments.NeuroCredits.ServiceConfiguration.InvalidateCurrent();
+	TAG.Payments.NeuroCredits.Configuration.ServiceConfiguration.InvalidateCurrent();
 
 	SeeOther("General.md");
 );

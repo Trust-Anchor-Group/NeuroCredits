@@ -8,4 +8,4 @@ Authorize(User,"Admin.Payments.NeuroCredits");
 Account:=select top 1 * from TAG.Payments.NeuroCredits.Data.AccountConfiguration where Account=PAccount;
 if !exists(Account) then NotFound("Account not found.");
 
-TAG.Payments.NeuroCredits.ServiceConfiguration.CurrentPersonalDebt(Account.Account,Account.PersonalNumber,Account.Country);
+TAG.Payments.NeuroCredits.Configuration.ServiceConfiguration.CurrentPersonalDebt(Account.Account,Account.PersonalNumber,Account.Country);

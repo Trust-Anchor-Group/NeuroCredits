@@ -1,13 +1,14 @@
 ﻿using System;
+using TAG.Payments.NeuroCredits.Configuration;
 using TAG.Payments.NeuroCredits.Data;
 using Waher.Content;
 
 namespace TAG.Payments.NeuroCredits
 {
-	/// <summary>
-	/// Contains credit-detail information for a user.
-	/// </summary>
-	internal class CreditDetails
+    /// <summary>
+    /// Contains credit-detail information for a user.
+    /// </summary>
+    internal class CreditDetails
 	{
 		/// <summary>
 		/// If credit is authorized

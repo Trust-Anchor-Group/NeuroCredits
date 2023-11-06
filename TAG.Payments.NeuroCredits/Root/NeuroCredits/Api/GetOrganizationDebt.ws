@@ -8,4 +8,4 @@ Authorize(User,"Admin.Payments.NeuroCredits");
 Organization:=select top 1 * from TAG.Payments.NeuroCredits.Data.OrganizationConfiguration where OrganizationName=POrganizationName;
 if !exists(Organization) then NotFound("Organization not found.");
 
-TAG.Payments.NeuroCredits.ServiceConfiguration.CurrentOrganizationDebt(Organization.OrganizationNumber,Organization.OrganizationCountry);
+TAG.Payments.NeuroCredits.Configuration.ServiceConfiguration.CurrentOrganizationDebt(Organization.OrganizationNumber,Organization.OrganizationCountry);

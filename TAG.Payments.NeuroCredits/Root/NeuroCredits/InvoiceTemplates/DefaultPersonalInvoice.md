@@ -72,12 +72,16 @@ AddStringRow("Country",Invoice.Country);
 | Contact e-mail:  | [{{Billing.ContactEMail}}](mailto:{{Billing.ContactEMail}}) |
 {{
 if !empty(Billing.ContactPhone) then AddStringRow("Contact phone","<tel:"+Billing.ContactPhone+">");
+if !empty(Billing.Reference) then AddStringRow("Sender reference",Billing.Reference);
+AddStringRow("Address",Billing.SenderAddress);
+AddStringRow("Country",Billing.SenderCountry);
+if !empty(Billing.WebPage) then AddStringRow("WebPage","<"+Billing.WebPage+">");
 AddStringRow("Bank Account",Billing.BankAccount);
 AddStringRow("IBAN",Billing.Iban);
 AddStringRow("Account holder's name",Billing.BankAccountName);
 AddStringRow("BIC or SWIFT",Billing.BankIdentifier);
 AddStringRow("Name of Bank",Billing.BankName);
-AddStringRow("Branch address",Billing.BranchAddress);
+AddStringRow("Bank Branch address",Billing.BranchAddress);
 }}
 
 {{
