@@ -455,7 +455,7 @@ namespace TAG.Payments.NeuroCredits
 						ObjectId = ReceiptTemplateFileName;
 						Markdown = await MarkdownDocument.Preprocess(ReceiptMarkdown, Settings);
 						await Gateway.SendNotification(Markdown);
-						await SendEMail(EMail, "Receipt, Purchase of Neuro-Credits™", Markdown, Styles, null);
+						await SendEMail(EMail, "Receipt, Purchase of Neuro-Credits™", Markdown, Styles, null, null, null);
 					}
 
 					string Subject = "Invoice" + (Invoice.NrInstallments > 1 ? " " + Invoice.Installment.ToString() : string.Empty) +
@@ -478,47 +478,14 @@ namespace TAG.Payments.NeuroCredits
 						StringBuilder Reminder = new StringBuilder();
 						DateTime TP = DateTime.UtcNow;
 						TimeZoneInfo TZ = TimeZoneInfo.Local;
-						TimeSpan TS;
 
 						AppendCalendar(Reminder, "BEGIN:VCALENDAR");
 						AppendCalendar(Reminder, "PRODID:-//Trust Anchor Group AB//Neuro-Credits//EN");
 						AppendCalendar(Reminder, "VERSION:2.0");
 						AppendCalendar(Reminder, "CALSCALE:GREGORIAN");
 						AppendCalendar(Reminder, "METHOD:REQUEST");
-						AppendCalendar(Reminder, "BEGIN:VTIMEZONE");
-						AppendCalendar(Reminder, "TZID:" + TZ.Id);
+						AppendCalendarTimeZone(Reminder, TZ, TP);
 
-						foreach (TimeZoneInfo.AdjustmentRule Rule in TZ.GetAdjustmentRules())
-						{
-							if (Rule.DateStart > TP.Date || Rule.DateEnd < TP.Date)
-								continue;
-
-							AppendCalendar(Reminder, "BEGIN:STANDARD");
-							TS = TZ.BaseUtcOffset + Rule.DaylightDelta;
-							AppendCalendar(Reminder, "TZOFFSETFROM:" + TS.Hours.ToString("D2") + TS.Minutes.ToString("D2"));
-							TS = TZ.BaseUtcOffset;
-							AppendCalendar(Reminder, "TZOFFSETTO:" + TS.Hours.ToString("D2") + TS.Minutes.ToString("D2"));
-							AppendCalendar(Reminder, "TZNAME:" + TS.Hours.ToString("D2") + (TS.Minutes == 0 ? string.Empty : TS.Minutes.ToString("D2")));
-
-							AppendCalendar(Reminder, "DTSTART:" + Rule.DateStart.Year.ToString("D4") + Rule.DateStart.Month.ToString("D2") +
-								Rule.DateStart.Day.ToString("D2") + "T100000");
-							AppendCalendar(Reminder, "END:STANDARD");
-
-							AppendCalendar(Reminder, "BEGIN:DAYLIGHT");
-							TS = TZ.BaseUtcOffset + Rule.DaylightDelta;
-							AppendCalendar(Reminder, "TZOFFSETFROM:" + TS.Hours.ToString("D2") + TS.Minutes.ToString("D2"));
-							AppendCalendar(Reminder, "TZOFFSETTO:" + TS.Hours.ToString("D2") + TS.Minutes.ToString("D2"));
-							AppendCalendar(Reminder, "TZNAME:" + TS.Hours.ToString("D2") + (TS.Minutes == 0 ? string.Empty : TS.Minutes.ToString("D2")));
-
-							AppendCalendar(Reminder, "DTSTART:" + Rule.DateStart.Year.ToString("D4") +
-								Rule.DaylightTransitionStart.Month.ToString("D2") + Rule.DaylightTransitionStart.Day.ToString("D2") + "T" +
-								Rule.DaylightTransitionStart.TimeOfDay.Hour.ToString("D2") +
-								Rule.DaylightTransitionStart.TimeOfDay.Minute.ToString("D2") +
-								Rule.DaylightTransitionStart.TimeOfDay.Second.ToString("D2"));
-							AppendCalendar(Reminder, "END:DAYLIGHT");
-						}
-
-						AppendCalendar(Reminder, "END:VTIMEZONE");
 						AppendCalendar(Reminder, "BEGIN:VEVENT");
 						AppendCalendar(Reminder, "DTSTART;TZID=" + TZ.Id + ":" + Invoice.DueDate.Year.ToString("D4") +
 							Invoice.DueDate.Month.ToString("D2") + Invoice.DueDate.Day.ToString("D2") + "T100000");
@@ -533,7 +500,7 @@ namespace TAG.Payments.NeuroCredits
 							Organizer = Gateway.Domain;
 
 						AppendCalendar(Reminder, "ORGANIZER;CN=" + Organizer + ":mailto:" + MailConfiguration.Address);
-						AppendCalendar(Reminder, "UID:" + Guid.NewGuid().ToString());
+						AppendCalendar(Reminder, "UID:" + Invoice.ObjectId + "_" + Invoice.NrReminders.ToString());
 						AppendCalendar(Reminder, "ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=FALSE;CN=" +
 							Invoice.PersonalName + ":mailto:" + EMail);
 						AppendCalendar(Reminder, "DESCRIPTION:" + Text.Replace("\r\n", "\n").Replace('\r', '\n').Replace("\n", "\\n"));
@@ -553,13 +520,136 @@ namespace TAG.Payments.NeuroCredits
 						AppendCalendar(Reminder, "END:VEVENT");
 						AppendCalendar(Reminder, "END:VCALENDAR");
 
-						await SendEMail(EMail, Subject, Markdown, Styles, Reminder.ToString());
+						await SendEMail(EMail, Subject, Markdown, Styles, Reminder.ToString(), "Reminder.ics", "REQUEST");
 					}
 				}
 			}
 			catch (Exception ex)
 			{
 				Log.Critical(ex, ObjectId);
+			}
+		}
+
+		private static void AppendCalendarTimeZone(StringBuilder Reminder, TimeZoneInfo TZ, DateTime TP)
+		{
+			TimeSpan TS;
+
+			AppendCalendar(Reminder, "BEGIN:VTIMEZONE");
+			AppendCalendar(Reminder, "TZID:" + TZ.Id);
+			foreach (TimeZoneInfo.AdjustmentRule Rule in TZ.GetAdjustmentRules())
+			{
+				if (Rule.DateStart > TP.Date || Rule.DateEnd < TP.Date)
+					continue;
+
+				AppendCalendar(Reminder, "BEGIN:STANDARD");
+				TS = TZ.BaseUtcOffset + Rule.DaylightDelta;
+				AppendCalendar(Reminder, "TZOFFSETFROM:" + TS.Hours.ToString("D2") + TS.Minutes.ToString("D2"));
+				TS = TZ.BaseUtcOffset;
+				AppendCalendar(Reminder, "TZOFFSETTO:" + TS.Hours.ToString("D2") + TS.Minutes.ToString("D2"));
+				AppendCalendar(Reminder, "TZNAME:" + TS.Hours.ToString("D2") + (TS.Minutes == 0 ? string.Empty : TS.Minutes.ToString("D2")));
+
+				AppendCalendar(Reminder, "DTSTART:" + Rule.DateStart.Year.ToString("D4") + Rule.DateStart.Month.ToString("D2") +
+					Rule.DateStart.Day.ToString("D2") + "T100000");
+				AppendCalendar(Reminder, "END:STANDARD");
+
+				AppendCalendar(Reminder, "BEGIN:DAYLIGHT");
+				TS = TZ.BaseUtcOffset + Rule.DaylightDelta;
+				AppendCalendar(Reminder, "TZOFFSETFROM:" + TS.Hours.ToString("D2") + TS.Minutes.ToString("D2"));
+				AppendCalendar(Reminder, "TZOFFSETTO:" + TS.Hours.ToString("D2") + TS.Minutes.ToString("D2"));
+				AppendCalendar(Reminder, "TZNAME:" + TS.Hours.ToString("D2") + (TS.Minutes == 0 ? string.Empty : TS.Minutes.ToString("D2")));
+
+				AppendCalendar(Reminder, "DTSTART:" + Rule.DateStart.Year.ToString("D4") +
+					Rule.DaylightTransitionStart.Month.ToString("D2") + Rule.DaylightTransitionStart.Day.ToString("D2") + "T" +
+					Rule.DaylightTransitionStart.TimeOfDay.Hour.ToString("D2") +
+					Rule.DaylightTransitionStart.TimeOfDay.Minute.ToString("D2") +
+					Rule.DaylightTransitionStart.TimeOfDay.Second.ToString("D2"));
+				AppendCalendar(Reminder, "END:DAYLIGHT");
+			}
+
+			AppendCalendar(Reminder, "END:VTIMEZONE");
+		}
+
+		private static async Task SendCancellations(IEnumerable<Invoice> Invoices, string EMail, bool OrganizationalCredit, BillingConfiguration BillingConfiguration)
+		{
+			string CancellationTemplateFileName;
+			string StylesFileName;
+
+			StylesFileName = Path.Combine(Gateway.RootFolder, "NeuroCredits", "MailStyles", "Default.css");
+
+			if (OrganizationalCredit)
+				CancellationTemplateFileName = Path.Combine(Gateway.RootFolder, "NeuroCredits", "CancellationTemplates", "DefaultOrganizationalCancellation.md");
+			else
+				CancellationTemplateFileName = Path.Combine(Gateway.RootFolder, "NeuroCredits", "CancellationTemplates", "DefaultPersonalCancellation.md");
+
+			try
+			{
+				string Styles = await Resources.ReadAllTextAsync(StylesFileName);
+				string CancellationMarkdown = await Resources.ReadAllTextAsync(CancellationTemplateFileName);
+				string Markdown;
+
+				MailConfiguration MailConfiguration = await MailConfiguration.GetCurrent();
+
+				foreach (Invoice Invoice in Invoices)
+				{
+					Variables Variables = new Variables()
+					{
+						["Invoice"] = Invoice,
+						["Billing"] = BillingConfiguration,
+					};
+					MarkdownSettings Settings = new MarkdownSettings(null, false, Variables);
+
+					Markdown = await MarkdownDocument.Preprocess(CancellationMarkdown, Settings);
+					await Gateway.SendNotification(Markdown);
+
+					if (MailConfiguration.IsWellDefined && !string.IsNullOrEmpty(EMail))
+					{
+						MarkdownDocument Doc = await MarkdownDocument.CreateAsync(Markdown, Settings);
+						string HTML = await Doc.GenerateHTML();
+						string Text = await Doc.GeneratePlainText();
+						string Subject = "Cancellation of Invoice" + (Invoice.NrInstallments > 1 ? " " + Invoice.Installment.ToString() : string.Empty) +
+							", Purchase of Neuro-Credits™";
+
+						int i = HTML.IndexOf("<html");
+						if (i > 0)
+							HTML = HTML.Substring(i);
+
+						StringBuilder Reminder = new StringBuilder();
+						DateTime TP = DateTime.UtcNow;
+						TimeZoneInfo TZ = TimeZoneInfo.Local;
+
+						AppendCalendar(Reminder, "BEGIN:VCALENDAR");
+						AppendCalendar(Reminder, "PRODID:-//Trust Anchor Group AB//Neuro-Credits//EN");
+						AppendCalendar(Reminder, "VERSION:2.0");
+						AppendCalendar(Reminder, "CALSCALE:GREGORIAN");
+						AppendCalendar(Reminder, "METHOD:CANCEL");
+						AppendCalendarTimeZone(Reminder, TZ, TP);
+
+						AppendCalendar(Reminder, "BEGIN:VEVENT");
+						AppendCalendar(Reminder, "DTSTART;TZID=" + TZ.Id + ":" + Invoice.DueDate.Year.ToString("D4") +
+							Invoice.DueDate.Month.ToString("D2") + Invoice.DueDate.Day.ToString("D2") + "T100000");
+						AppendCalendar(Reminder, "DTEND;TZID=" + TZ.Id + ":" + Invoice.DueDate.Year.ToString("D4") +
+							Invoice.DueDate.Month.ToString("D2") + Invoice.DueDate.Day.ToString("D2") + "T103000");
+						AppendCalendar(Reminder, "DTSTAMP:" + TP.Year.ToString("D4") + TP.Month.ToString("D2") +
+							TP.Day.ToString("D2") + "T" + TP.Hour.ToString("D2") + TP.Minute.ToString("D2") +
+							TP.Second.ToString("D2") + "Z");
+						AppendCalendar(Reminder, "UID:" + Invoice.ObjectId + "_" + Invoice.NrReminders.ToString());
+						AppendCalendar(Reminder, "DESCRIPTION:Invoice has been paid.");
+						AppendCalendar(Reminder, "LAST-MODIFIED:" + TP.Year.ToString("D4") + TP.Month.ToString("D2") +
+							TP.Day.ToString("D2") + "T" + TP.Hour.ToString("D2") + TP.Minute.ToString("D2") + TP.Second.ToString("D2") + "Z");
+						AppendCalendar(Reminder, "LOCATION:");
+						AppendCalendar(Reminder, "SEQUENCE:0");
+						AppendCalendar(Reminder, "STATUS:CANCELLED");
+						AppendCalendar(Reminder, "SUMMARY:" + Subject);
+						AppendCalendar(Reminder, "END:VEVENT");
+						AppendCalendar(Reminder, "END:VCALENDAR");
+
+						await SendEMail(EMail, Subject, Markdown, Styles, Reminder.ToString(), "Cancellation.ics", "CANCEL");
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Log.Critical(ex, CancellationTemplateFileName);
 			}
 		}
 
@@ -595,7 +685,7 @@ namespace TAG.Payments.NeuroCredits
 		/// <param name="Markdown">Markdown content.</param>
 		public static async Task SendTestEMail(string EMail, string Subject, string Markdown)
 		{
-			bool Result = await SendEMail(EMail, Subject, Markdown, null, null);
+			bool Result = await SendEMail(EMail, Subject, Markdown, null, null, null, null);
 			string[] TabIDs = ClientEvents.GetTabIDsForLocation("/NeuroCredits/Mail.md");
 			if (TabIDs.Length > 0)
 				await ClientEvents.PushEvent(TabIDs, "TestMailSent", CommonTypes.Encode(Result), true);
@@ -609,7 +699,8 @@ namespace TAG.Payments.NeuroCredits
 		/// <param name="Markdown">Markdown content.</param>
 		/// <param name="Styles">Styles to use in the formatted message.</param>
 		/// <param name="CalendarReminder">Calendar reminder entry.</param>
-		public static async Task<bool> SendEMail(string EMail, string Subject, string Markdown, string Styles, string CalendarReminder)
+		public static async Task<bool> SendEMail(string EMail, string Subject, string Markdown, string Styles, string CalendarReminder, 
+			string CalendarFileName, string CalendarMethod)
 		{
 			try
 			{
@@ -627,8 +718,8 @@ namespace TAG.Payments.NeuroCredits
 					EmbeddedContent Entry = new EmbeddedContent()
 					{
 						Raw = Encoding.UTF8.GetBytes(CalendarReminder),
-						ContentType = "text/calendar; method=\"REQUEST\"; component=\"VTODO\"; charset=\"utf-8\"",
-						FileName = "Reminder.ics",
+						ContentType = "text/calendar; method=\"" + CalendarMethod + "\"; component=\"VEVENT\"; charset=\"utf-8\"",
+						FileName = CalendarFileName,
 						Disposition = ContentDisposition.Attachment
 					};
 
@@ -801,15 +892,23 @@ namespace TAG.Payments.NeuroCredits
 				new FilterFieldEqualTo("Country", PI.Country),
 				new FilterFieldEqualTo("IsPaid", false),
 				new FilterFieldEqualTo("Currency", Currency)));
+			LinkedList<Invoice> PaidPersonalInvoices = null;
+			LinkedList<Invoice> PaidOrganizationalInvoices = null;
 
 			foreach (Invoice Invoice in PersonalUnpaidInvoices)
 			{
 				if (AmountLeft >= Invoice.AmountLeft)
 				{
 					if (Invoice.IsOrganizational)
+					{
 						Paid = await ServiceConfiguration.DecrementOrganizationalDebt(Invoice.AmountLeft, PI.OrganizationNumber, PI.OrganizationCountry);
+						Add(ref PaidOrganizationalInvoices, Invoice);
+					}
 					else
+					{
 						Paid = await ServiceConfiguration.DecrementPersonalDebt(Invoice.AmountLeft, PI.PersonalNumber, PI.Country);
+						Add(ref PaidPersonalInvoices, Invoice);
+					}
 
 					AmountLeft -= Paid;
 					AmountPaid += Paid;
@@ -840,10 +939,10 @@ namespace TAG.Payments.NeuroCredits
 				await Database.Update(Invoice);
 
 				if (AmountLeft <= 0)
-					return new PaymentResult(AmountPaid, Currency);
+					break;
 			}
 
-			if (PI.HasOrganizationalBillingInformation)
+			if (AmountLeft > 0 && PI.HasOrganizationalBillingInformation)
 			{
 				IEnumerable<Invoice> OrganizationalUnpaidInvoices = await Database.Find<Invoice>(new FilterAnd(
 					new FilterFieldEqualTo("OrganizationNumber", PI.OrganizationNumber),
@@ -856,9 +955,15 @@ namespace TAG.Payments.NeuroCredits
 					if (AmountLeft >= Invoice.AmountLeft)
 					{
 						if (Invoice.IsOrganizational)
+						{
 							Paid = await ServiceConfiguration.DecrementOrganizationalDebt(Invoice.AmountLeft, PI.OrganizationNumber, PI.OrganizationCountry);
+							Add(ref PaidOrganizationalInvoices, Invoice);
+						}
 						else
+						{
 							Paid = await ServiceConfiguration.DecrementPersonalDebt(Invoice.AmountLeft, PI.PersonalNumber, PI.Country);
+							Add(ref PaidPersonalInvoices, Invoice);
+						}
 
 						AmountLeft -= Paid;
 						AmountPaid += Paid;
@@ -889,11 +994,32 @@ namespace TAG.Payments.NeuroCredits
 					await Database.Update(Invoice);
 
 					if (AmountLeft <= 0)
-						return new PaymentResult(AmountPaid, Currency);
+						break;
 				}
 			}
 
+			if (!(PaidPersonalInvoices is null) || !(PaidOrganizationalInvoices is null))
+			{
+				BillingConfiguration BillingConfiguration = await BillingConfiguration.GetCurrent();
+				string AccountName = XmppClient.GetAccount(PI.Jid);
+				string EMail = await GetEMail(AccountName);
+
+				if (!(PaidPersonalInvoices is null))
+					await SendCancellations(PaidPersonalInvoices, EMail, false, BillingConfiguration);
+
+				if (!(PaidOrganizationalInvoices is null))
+					await SendCancellations(PaidOrganizationalInvoices, EMail, true, BillingConfiguration);
+			}
+
 			return new PaymentResult(AmountPaid, Currency);
+		}
+
+		private static void Add(ref LinkedList<Invoice> Invoices, Invoice Invoice)
+		{
+			if (Invoices is null)
+				Invoices = new LinkedList<Invoice>();
+
+			Invoices.AddLast(Invoice);
 		}
 
 		/// <summary>

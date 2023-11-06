@@ -23,6 +23,10 @@
 				<Content fileName="LoadMoreCancelled.ws"/>
 				<Content fileName="LoadMorePending.ws"/>
 			</Folder>
+			<Folder name="CancellationTemplates">
+				<Content fileName="DefaultOrganizationalCancellation.md"/>
+				<Content fileName="DefaultPersonalCancellation.md"/>
+			</Folder>
 			<Folder name="InvoiceTemplates">
 				<Content fileName="DefaultOrganizationalInvoice.md"/>
 				<Content fileName="DefaultPersonalInvoice.md"/>
