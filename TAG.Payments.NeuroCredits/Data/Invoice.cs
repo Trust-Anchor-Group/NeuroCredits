@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 using Waher.Content;
 using Waher.Persistence;
 using Waher.Persistence.Attributes;
@@ -467,5 +468,12 @@ namespace TAG.Payments.NeuroCredits.Data
 			}
 		}
 
+		/// <summary>
+		/// Resneds the invoice.
+		/// </summary>
+		public Task Resend()
+		{
+			return NeuroCreditsService.ResendInvoice(this);
+		}
 	}
 }

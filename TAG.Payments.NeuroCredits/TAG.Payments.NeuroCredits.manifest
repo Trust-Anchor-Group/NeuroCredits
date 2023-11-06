@@ -23,6 +23,7 @@
 				<Content fileName="GetOrganizationDebt.ws"/>
 				<Content fileName="LoadMoreCancelled.ws"/>
 				<Content fileName="LoadMorePending.ws"/>
+				<Content fileName="ResendInvoice.ws"/>
 			</Folder>
 			<Folder name="CancellationTemplates">
 				<Content fileName="DefaultOrganizationalCancellation.md"/>

@@ -8,6 +8,7 @@ using TAG.Payments.NeuroCredits.Configuration;
 using TAG.Payments.NeuroCredits.Data;
 using Waher.Content;
 using Waher.Content.Html.Css;
+using Waher.Content.Html.Elements;
 using Waher.Content.Markdown;
 using Waher.Content.Multipart;
 using Waher.Events;
@@ -391,7 +392,7 @@ namespace TAG.Payments.NeuroCredits
 			return new PaymentResult(Amount, Currency);
 		}
 
-		private static async Task<string> GetEMail(string AccountName)
+		private static async Task<string> GetEMail(CaseInsensitiveString AccountName)
 		{
 			string EMail = null;
 
@@ -1127,7 +1128,7 @@ namespace TAG.Payments.NeuroCredits
 
 						await Database.Update(Invoices);
 
-						string EMail = await GetEMail(P.Key);
+						string EMail = await GetEMail(AccountName);
 						await SendInvoices(Invoices, EMail, Invoices.First.Value.IsOrganizational, BillingConfiguration);
 					}
 					catch (Exception ex)
@@ -1136,6 +1137,14 @@ namespace TAG.Payments.NeuroCredits
 					}
 				}
 			}
+		}
+
+		internal static async Task ResendInvoice(Invoice Invoice)
+		{
+			BillingConfiguration BillingConfiguration = await BillingConfiguration.GetCurrent();
+			CaseInsensitiveString AccountName = Invoice.Account;
+			string EMail = await GetEMail(AccountName);
+			await SendInvoices(new Invoice[] { Invoice }, EMail, Invoice.IsOrganizational, BillingConfiguration);
 		}
 
 		#endregion

@@ -1551,7 +1551,7 @@ function LoadMore(Button, Offset, MaxCount, Type)
 	};
 
 	Button.setAttribute("data-scroll", "x");
-	xhttp.open("POST", "Api/LoadMore"+Type+".ws", true);
+	xhttp.open("POST", "Api/LoadMore" + Type + ".ws", true);
 	xhttp.setRequestHeader("Content-Type", "application/json");
 	xhttp.setRequestHeader("Accept", "application/json");
 	xhttp.send(JSON.stringify(
@@ -1584,4 +1584,31 @@ function TestMailSent(Result)
 		window.alert("Test e-mail was successfully sent.");
 	else
 		window.alert("An error occurred when attempting to send test e-mail. Check logs for more information.");
+}
+
+function ResendInvoice(InvoiceNr)
+{
+	if (window.confirm("Are you sure you want to resend the invocie? It may incur costs that cannot be deferred to the buyer."))
+	{
+		var xhttp = new XMLHttpRequest();
+		xhttp.onreadystatechange = function ()
+		{
+			if (xhttp.readyState === 4)
+			{
+				if (xhttp.status === 200)
+					window.alert("Invoice resent.");
+				else
+					window.alert("Unable to resend invoice: " + xhttp.responseText);
+			}
+		};
+
+		xhttp.open("POST", "Api/ResendInvoice.ws", true);
+		xhttp.setRequestHeader("Content-Type", "application/json");
+		xhttp.setRequestHeader("Accept", "application/json");
+		xhttp.send(JSON.stringify(
+			{
+				"invoiceNr": InvoiceNr
+			}
+		));
+	}
 }
