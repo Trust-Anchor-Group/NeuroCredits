@@ -115,18 +115,18 @@ namespace TAG.Payments.NeuroCredits.Configuration
             get
             {
                 return
-                    !(Countries is null) &&
-                    Countries.Length > 0 &&
-                    !(Currencies is null) &&
-                    Currencies.Length > 0 &&
-                    PeriodInterest > 0 &&
-                    MaxInstallments > 1 &&
-                    Period.Seconds == 0 &&
-                    Period.Minutes == 0 &&
-                    Period.Hours == 0 &&
-                    (Period.Days > 0 ||
-                    Period.Months > 0 ||
-                    Period.Years > 0);
+                    !(this.Countries is null) &&
+					this.Countries.Length > 0 &&
+                    !(this.Currencies is null) &&
+                    this.Currencies.Length > 0 &&
+                    this.PeriodInterest > 0 &&
+                    this.MaxInstallments > 1 &&
+                    this.Period.Seconds == 0 &&
+                    this.Period.Minutes == 0 &&
+                    this.Period.Hours == 0 &&
+                    (this.Period.Days > 0 ||
+                    this.Period.Months > 0 ||
+					this.Period.Years > 0);
             }
         }
 
@@ -230,10 +230,10 @@ namespace TAG.Payments.NeuroCredits.Configuration
             if (!string.IsNullOrEmpty(Domain) && !Gateway.IsDomain(Domain, true))
                 return (0, 0, null);
 
-            if (!SupportsCountry(Country))
+            if (!this.SupportsCountry(Country))
                 return (0, 0, null);
 
-            if (!SupportsCurrency(Currency))
+            if (!this.SupportsCurrency(Currency))
                 return (0, 0, null);
 
             string Account = XmppClient.GetAccount(Jid);
@@ -248,8 +248,8 @@ namespace TAG.Payments.NeuroCredits.Configuration
 
             if (Configuration is null)
             {
-                if (AllowPrivatePersons)
-                    Amount = DefaultMaxPersonalLimit;
+                if (this.AllowPrivatePersons)
+                    Amount = this.DefaultMaxPersonalLimit;
                 else
                     return (0, 0, null);
             }
@@ -320,7 +320,7 @@ namespace TAG.Payments.NeuroCredits.Configuration
             if (!string.IsNullOrEmpty(Domain) && !Gateway.IsDomain(Domain, true))
                 return (0, 0, null);
 
-            if (!SupportsCurrency(Currency))
+            if (!this.SupportsCurrency(Currency))
                 return (0, 0, null);
 
             string Account = XmppClient.GetAccount(Jid);
@@ -336,8 +336,8 @@ namespace TAG.Payments.NeuroCredits.Configuration
 
             if (Configuration is null)
             {
-                if (AllowOrganizations)
-                    Amount = DefaultMaxOrganizationalLimit;
+                if (this.AllowOrganizations)
+                    Amount = this.DefaultMaxOrganizationalLimit;
                 else
                     return (0, 0, null);
             }
@@ -407,10 +407,10 @@ namespace TAG.Payments.NeuroCredits.Configuration
         /// <returns>If country is supported.</returns>
         public bool SupportsCountry(CaseInsensitiveString Country)
         {
-            if (!IsWellDefined)
+            if (!this.IsWellDefined)
                 return false;
 
-            foreach (string s in Countries)
+            foreach (string s in this.Countries)
             {
                 if (s.Trim().ToLower() == Country.LowerCase)
                     return true;
@@ -426,10 +426,10 @@ namespace TAG.Payments.NeuroCredits.Configuration
         /// <returns>If currency is supported.</returns>
         public bool SupportsCurrency(CaseInsensitiveString Currency)
         {
-            if (!IsWellDefined)
+            if (!this.IsWellDefined)
                 return false;
 
-            foreach (string s in Currencies)
+            foreach (string s in this.Currencies)
             {
                 if (s.Trim().ToLower() == Currency.LowerCase)
                     return true;

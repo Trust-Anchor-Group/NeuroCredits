@@ -79,12 +79,12 @@ namespace TAG.Payments.NeuroCredits.Configuration
             get
             {
                 return
-                    !string.IsNullOrEmpty(Address) &&
-                    !string.IsNullOrEmpty(Host) &&
-                    !string.IsNullOrEmpty(Account) &&
-                    !string.IsNullOrEmpty(Password) &&
-                    Port > 0 &&
-                    Port <= 65535;
+                    !string.IsNullOrEmpty(this.Address) &&
+                    !string.IsNullOrEmpty(this.Host) &&
+                    !string.IsNullOrEmpty(this.Account) &&
+                    !string.IsNullOrEmpty(this.Password) &&
+                    this.Port > 0 &&
+					this.Port <= 65535;
             }
         }
 

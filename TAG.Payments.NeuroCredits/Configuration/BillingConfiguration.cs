@@ -151,16 +151,16 @@ namespace TAG.Payments.NeuroCredits.Configuration
             get
             {
                 return
-                    !string.IsNullOrEmpty(Sender) &&
-                    !string.IsNullOrEmpty(TaxNr) &&
-                    !string.IsNullOrEmpty(ContactEMail) &&
-                    !string.IsNullOrEmpty(SenderAddress) &&
-                    !string.IsNullOrEmpty(SenderCountry) &&
-                    !string.IsNullOrEmpty(BankAccount) &&
-					!string.IsNullOrEmpty(BankAccountName) &&
-                    !string.IsNullOrEmpty(BankIdentifier) &&
-                    !string.IsNullOrEmpty(BankName) &&
-                    !string.IsNullOrEmpty(BranchAddress);
+                    !string.IsNullOrEmpty(this.Sender) &&
+                    !string.IsNullOrEmpty(this.TaxNr) &&
+                    !string.IsNullOrEmpty(this.ContactEMail) &&
+                    !string.IsNullOrEmpty(this.SenderAddress) &&
+                    !string.IsNullOrEmpty(this.SenderCountry) &&
+                    !string.IsNullOrEmpty(this.BankAccount) &&
+					!string.IsNullOrEmpty(this.BankAccountName) &&
+                    !string.IsNullOrEmpty(this.BankIdentifier) &&
+                    !string.IsNullOrEmpty(this.BankName) &&
+                    !string.IsNullOrEmpty(this.BranchAddress);
             }
         }
 
