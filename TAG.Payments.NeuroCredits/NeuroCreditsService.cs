@@ -30,9 +30,9 @@ namespace TAG.Payments.NeuroCredits
 	/// </summary>
 	public class NeuroCreditsService : IBuyEDalerService, ISellEDalerService
 	{
-		private const string buyEDalerTemplateIdDev = "2cdbb8e0-021f-fb5d-482f-12bc2bce0b3a@legal.";    // For local development, you need to republish the contracts on the local development neuron,
+		private const string buyEDalerTemplateIdDev = "2cdbfa50-74a5-2e9d-d0a0-8ea5e1999fab@legal.";    // For local development, you need to republish the contracts on the local development neuron,
 		private const string sellEDalerTemplateIdDev = "2ccae7dd-bea4-cdb1-ec97-0d1b0277db08@legal.";   // and replace these values with your local Contract IDs. Do not check those IDs into the repo.
-		private const string buyEDalerTemplateIdProd = "2cdbb906-6c21-803c-880e-301af73dfc5e@legal.paiwise.tagroot.io";
+		private const string buyEDalerTemplateIdProd = "2cdbfa69-6c21-82d9-880e-301af77b53f6@legal.paiwise.tagroot.io";
 		private const string sellEDalerTemplateIdProd = "2cd3fff4-6c21-3386-880e-301af736a5d1@legal.paiwise.tagroot.io";
 
 		/// <summary>
@@ -268,12 +268,16 @@ namespace TAG.Payments.NeuroCredits
 			decimal ExpectedPeriodInterest = Details.PeriodInterest;
 			DateTime ExpectedInitialDueDate = Details.InitialDueDate;
 			decimal MaxInstallments = Details.MaxInstallments;
+			decimal ExpectedInvoiceFee = Details.Configuration.InvoiceFee;
 
 			if (!ContractParameters.TryGetValue("Period", out object Obj) || !(Obj is Duration Period) || Period != ExpectedPeriod)
 				return new PaymentResult("Period of contract unexpected.");
 
 			if (!ContractParameters.TryGetValue("PeriodInterest", out Obj) || !(Obj is decimal PeriodInterest) || PeriodInterest != ExpectedPeriodInterest)
 				return new PaymentResult("Period interest of contract unexpected.");
+
+			if (!ContractParameters.TryGetValue("InvoiceFee", out Obj) || !(Obj is decimal InvoiceFee) || InvoiceFee != ExpectedInvoiceFee)
+				return new PaymentResult("Invoice fee of contract unexpected.");
 
 			if (!ContractParameters.TryGetValue("InitialDueDate", out Obj) || !(Obj is DateTime InitialDueDate) || InitialDueDate.Subtract(ExpectedInitialDueDate).TotalDays > 1)
 				return new PaymentResult("Initial due date of contract unexpected.");
@@ -302,9 +306,15 @@ namespace TAG.Payments.NeuroCredits
 				decimal InstallmentAmount = Math.Ceiling(AmountLeft / (NrInstallments - Installment + 1));
 
 				if (Details.OrganizationalCredit)
+				{
+					InvoiceFee = await ServiceConfiguration.IncrementOrganizationalDebt(InvoiceFee, PI.OrganizationNumber, PI.OrganizationCountry);
 					InstallmentAmount = await ServiceConfiguration.IncrementOrganizationalDebt(InstallmentAmount, PI.OrganizationNumber, PI.OrganizationCountry);
+				}
 				else
+				{
+					InvoiceFee = await ServiceConfiguration.IncrementPersonalDebt(InvoiceFee, PI.PersonalNumber, PI.Country);
 					InstallmentAmount = await ServiceConfiguration.IncrementPersonalDebt(InstallmentAmount, PI.PersonalNumber, PI.Country);
+				}
 
 				AmountLeft -= InstallmentAmount;
 				AmountLeft = Math.Ceiling(AmountLeft * (100 + PeriodInterest) * 0.01M);
@@ -318,7 +328,8 @@ namespace TAG.Payments.NeuroCredits
 					Account = AccountName,
 					IsPaid = false,
 					PurchaseAmount = PurchaseAmount,
-					Amount = InstallmentAmount,
+					Amount = InstallmentAmount + InvoiceFee,
+					InvoiceFee = InvoiceFee,
 					Message = Message,
 					LateFees = 0,
 					NrReminders = 0,
@@ -695,6 +706,9 @@ namespace TAG.Payments.NeuroCredits
 					{ "Currency", Details.Currency },
 					{ "Min(Currency)", Details.Currency },
 					{ "Max(Currency)", Details.Currency },
+					{ "InvoiceFee", Details.Configuration.InvoiceFee },
+					{ "Min(InvoiceFee)", Details.Configuration.InvoiceFee },
+					{ "Max(InvoiceFee)", Details.Configuration.InvoiceFee },
 					{ "Installments", 1 },
 					{ "Max(Installments)", Details.MaxInstallments }
 				}
@@ -978,7 +992,7 @@ namespace TAG.Payments.NeuroCredits
 					{
 						foreach (Invoice Invoice in Invoices)
 						{
-							Invoice.LateFees += Math.Ceiling(Invoice.AmountLeft * Invoice.PeriodInterest / 100);
+							Invoice.LateFees += Math.Ceiling(Invoice.AmountLeft * Invoice.PeriodInterest / 100) + Invoice.InvoiceFee;
 							Invoice.DueDate += Invoice.Period;
 							Invoice.InvoiceDate = TP;
 							Invoice.LastReminder = TP;

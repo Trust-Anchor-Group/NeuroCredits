@@ -71,6 +71,11 @@ namespace TAG.Payments.NeuroCredits.Data
 		public decimal LateFees { get; set; }
 
 		/// <summary>
+		/// Fixed invoice fee
+		/// </summary>
+		public decimal InvoiceFee { get; set; }
+
+		/// <summary>
 		/// Amount that has been paid.
 		/// </summary>
 		public decimal AmountPaid { get; set; }

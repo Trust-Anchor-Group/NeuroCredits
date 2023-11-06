@@ -4,7 +4,7 @@
 The following information contains the receipt for the purchase of Neuro-Credits™. You will find a QR-encoded link below
 with a reference to the signed purchase contract, for further information.
 
-| General Information                                      ||
+| General Information                                       ||
 |:-----------------|----------------------------------------:|
 | Purchase Date:   | {{Invoice.Created.ToShortDateString()}} |
 {{
@@ -33,6 +33,8 @@ if !empty(Invoice.Message) then AddStringRow("Message",Invoice.Message.Replace("
 AddValueRow("Neuro-Credits™ purchased",Invoice.PurchaseAmount,Invoice.Currency,false);
 AddValueRow("Installments",Invoice.NrInstallments,"",false);
 AddValueRow("Price",Invoice.PurchasePrice,Invoice.Currency,true);
+AddValueRow("Invoice fee",Invoice.InvoiceFee,Invoice.Currency,false);
+AddValueRow("Period interest",Invoice.PeriodInterest,"%",false);
 }}
 
 | Information about Buyer                                                                   ||

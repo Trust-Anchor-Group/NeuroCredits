@@ -32,6 +32,7 @@ if exists(Posted) then
 	SetSetting("TAG.Payments.NeuroCredits.Organizations",Boolean(Posted.AllowOrganizations ??? false));
 	SetSetting("TAG.Payments.NeuroCredits.DefaultPersonalLimit",Num(Posted.DefaultPersonalLimit));
 	SetSetting("TAG.Payments.NeuroCredits.DefaultOrganizationalLimit",Num(Posted.DefaultOrganizationalLimit));
+	SetSetting("TAG.Payments.NeuroCredits.InvoiceFee",Num(Posted.InvoiceFee));
 	SetSetting("TAG.Payments.NeuroCredits.Period",Str(Period));
 	SetSetting("TAG.Payments.NeuroCredits.PeriodInterest",Num(Posted.PeriodInterest));
 	SetSetting("TAG.Payments.NeuroCredits.MaxInstallments",Num(Posted.MaxInstallments));
@@ -60,6 +61,11 @@ if exists(Posted) then
 <p>
 <label for="DefaultOrganizationalLimit">Default **organizational** credit limit: ({{DefaultCurrency}})</label>  
 <input id="DefaultOrganizationalLimit" name="DefaultOrganizationalLimit" type="number" min="0" value="{{GetSetting('TAG.Payments.NeuroCredits.DefaultOrganizationalLimit',0)}}" style="max-width:20em"/>
+</p>
+
+<p>
+<label for="InvoiceFee">Invoice fee: ({{DefaultCurrency}})</label>  
+<input id="InvoiceFee" name="InvoiceFee" type="number" min="0" value="{{GetSetting('TAG.Payments.NeuroCredits.InvoiceFee',0)}}" style="max-width:20em"/>
 </p>
 
 <p>

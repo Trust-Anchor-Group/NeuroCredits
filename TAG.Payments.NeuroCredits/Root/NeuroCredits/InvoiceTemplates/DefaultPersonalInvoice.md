@@ -37,6 +37,9 @@ if !empty(Invoice.Message) then AddStringRow("Message",Invoice.Message.Replace("
 if Invoice.NrInstallments>1 then
 	AddStringRow("Installment", Str(Invoice.Installment)+"/"+Str(Invoice.NrInstallments));
 
+AddValueRow("Neuro-Credits™ purchased",Invoice.PurchaseAmount,Invoice.Currency,false);
+AddValueRow("Invoice fee",Invoice.InvoiceFee,Invoice.Currency,false);
+AddValueRow("Period interest",Invoice.PeriodInterest,"%",false);
 AddValueRow("Amount",Invoice.Amount,Invoice.Currency,Invoice.LateFees=0 and Invoice.AmountPaid=0);
 AddValueRow("Reminders",Invoice.NrReminders,"",false);
 
@@ -74,7 +77,7 @@ AddStringRow("Country",Invoice.Country);
 | Tax (VAT) Nr:    | {{Billing.TaxNr}}                                           |
 | Contact e-mail:  | [{{Billing.ContactEMail}}](mailto:{{Billing.ContactEMail}}) |
 {{
-if !empty(Billing.ContactPhone) then AddStringRow("Contact phone","<tel:"+Billing.ContactPhone+">");
+if !empty(Billing.ContactPhone) then AddStringRow("Contact phone","["+Billing.ContactPhone+"](tel:"+Billing.ContactPhone+")");
 if !empty(Billing.Reference) then AddStringRow("Sender reference",Billing.Reference);
 AddStringRow("Address",Billing.SenderAddress);
 AddStringRow("Country",Billing.SenderCountry);

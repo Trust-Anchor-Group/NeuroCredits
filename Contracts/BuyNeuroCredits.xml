@@ -56,6 +56,13 @@
 				</paragraph>
 			</description>
 		</stringParameter>
+		<numericalParameter name="InvoiceFee" min="0" minIncluded="false">
+			<description xml:lang="en">
+				<paragraph>
+					<text>A fixed fee for each invoice that has to be sent. This includes the first invoice for each installment, as well as reminders.</text>
+				</paragraph>
+			</description>
+		</numericalParameter>
 		<stringParameter name="Message" value="">
 			<description xml:lang="en">
 				<paragraph>
@@ -105,7 +112,7 @@
 				</paragraph>
 			</description>
 		</calcParameter>
-		<calcParameter name="TotalCost" exp="AmountLeft:=Price;sum([foreach x in 1..Installments do (Installment:=ceil(AmountLeft/(Installments-x+1));AmountLeft-=Installment;AmountLeft:=ceil(AmountLeft*(100+PeriodInterest)/100);Installment)])">
+		<calcParameter name="TotalCost" exp="AmountLeft:=Price;sum([foreach x in 1..Installments do (Installment:=ceil(AmountLeft/(Installments-x+1));AmountLeft-=Installment;AmountLeft:=ceil(AmountLeft*(100+PeriodInterest)/100);Installment+InvoiceFee)])">
 			<description xml:lang="en">
 				<paragraph>
 					<text>Total cost of buying Neuro-Credits™, over all installments.</text>
@@ -309,7 +316,7 @@
 					</header>
 					<body>
 						<paragraph>
-							<text>The total cost, including interest and installments, assuming the </text>
+							<text>The total cost, including interest, installments and invoice fees, assuming the </text>
 							<bold>
 								<text>Buyer</text>
 							</bold>
@@ -340,7 +347,13 @@
 							<bold>
 								<parameter name="Period" />
 							</bold>
-							<text>. If the </text>
+							<text>. Each invoice, including reminders, have an additional fixed cost of </text>
+							<bold>
+								<parameter name="InvoiceFee"/>
+								<text> </text>
+								<parameter name="Currency"/>
+							</bold>
+							<text> that is added to the amount to be paid. If the </text>
 							<bold>
 								<text>Buyer</text>
 							</bold>
@@ -357,7 +370,7 @@
 								<parameter name="PeriodInterest" />
 								<text>%</text>
 							</bold>
-							<text> will be added to the installment amount, and the due date of that installment will be moved forward another period (</text>
+							<text> will be added to the installment amount, as well as an additional invoice fee, and the due date of that installment will be moved forward another period (</text>
 							<bold>
 								<parameter name="Period" />
 							</bold>
@@ -425,7 +438,7 @@
 							<bold>
 								<text>Trust Provider</text>
 							</bold>
-							<text> counts an invoice as cancelled when the net amount invoiced have been paid.</text>
+							<text> counts an invoice as cancelled when the net amount invoiced has been paid.</text>
 						</paragraph>
 					</body>
 				</section>
@@ -531,7 +544,17 @@
 							</row>
 							<row>
 								<cell colSpan="1" header="false" alignment="Left">
-									<text>Late payment interest:</text>
+									<text>Invoice fee (per invoice):</text>
+								</cell>
+								<cell colSpan="1" header="false" alignment="Right">
+									<parameter name="InvoiceFee" />
+									<text> </text>
+									<parameter name="Currency" />
+								</cell>
+							</row>
+							<row>
+								<cell colSpan="1" header="false" alignment="Left">
+									<text>Late payment period interest:</text>
 								</cell>
 								<cell colSpan="1" header="false" alignment="Right">
 									<parameter name="PeriodInterest" />

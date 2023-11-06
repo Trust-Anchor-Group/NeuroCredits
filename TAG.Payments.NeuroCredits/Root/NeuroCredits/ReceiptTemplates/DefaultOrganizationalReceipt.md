@@ -33,6 +33,8 @@ if !empty(Invoice.Message) then AddStringRow("Message",Invoice.Message.Replace("
 AddValueRow("Neuro-Credits™ purchased",Invoice.PurchaseAmount,Invoice.Currency,false);
 AddValueRow("Installments",Invoice.NrInstallments,"",false);
 AddValueRow("Price",Invoice.PurchasePrice,Invoice.Currency,true);
+AddValueRow("Invoice fee",Invoice.InvoiceFee,Invoice.Currency,false);
+AddValueRow("Period interest",Invoice.PeriodInterest,"%",false);
 }}
 
 | Information about Buyer                                                                                                           ||

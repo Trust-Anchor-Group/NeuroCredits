@@ -81,6 +81,15 @@ namespace TAG.Payments.NeuroCredits.Configuration
         }
 
         /// <summary>
+        /// Fixed invoice fee.
+        /// </summary>
+        public decimal InvoiceFee
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
         /// Invoices must be paid within this period.
         /// </summary>
         public Duration Period
@@ -121,6 +130,7 @@ namespace TAG.Payments.NeuroCredits.Configuration
                     this.Currencies.Length > 0 &&
                     this.PeriodInterest > 0 &&
                     this.MaxInstallments > 1 &&
+                    this.InvoiceFee >= 0 &&
                     this.Period.Seconds == 0 &&
                     this.Period.Minutes == 0 &&
                     this.Period.Hours == 0 &&
@@ -146,6 +156,7 @@ namespace TAG.Payments.NeuroCredits.Configuration
             Result.DefaultMaxPersonalLimit = (decimal)await RuntimeSettings.GetAsync(Prefix + ".DefaultPersonalLimit", 0d);
             Result.DefaultMaxOrganizationalLimit = (decimal)await RuntimeSettings.GetAsync(Prefix + ".DefaultOrganizationalLimit", 0d);
             Result.PeriodInterest = (decimal)await RuntimeSettings.GetAsync(Prefix + ".PeriodInterest", 2d);
+            Result.InvoiceFee = (decimal)await RuntimeSettings.GetAsync(Prefix + ".InvoiceFee", 0d);
             Result.MaxInstallments = (int)await RuntimeSettings.GetAsync(Prefix + ".MaxInstallments", 6d);
 
             if (Duration.TryParse(await RuntimeSettings.GetAsync(Prefix + ".Period", "P1M"), out Duration D))
