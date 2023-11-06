@@ -28,6 +28,8 @@ AddValueRow(Key,Value,Currency,Bold):=
 	)
 );
 
+if !empty(Invoice.Message) then AddStringRow("Message",Invoice.Message.Replace("\r\n","\n").Replace("\r","\n").Replace("&","&amp;").Replace("<","&lt;").Replace(">","&gt;").Replace("\n","<br/>"));
+
 AddValueRow("Neuro-Credits™ purchased",Invoice.PurchaseAmount,Invoice.Currency,false);
 AddValueRow("Installments",Invoice.NrInstallments,"",false);
 AddValueRow("Price",Invoice.PurchasePrice,Invoice.Currency,true);

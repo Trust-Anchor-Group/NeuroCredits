@@ -32,6 +32,8 @@ AddValueRow(Key,Value,Currency,Bold):=
 	)
 );
 
+if !empty(Invoice.Message) then AddStringRow("Message",Invoice.Message.Replace("\r\n","\n").Replace("\r","\n").Replace("&","&amp;").Replace("<","&lt;").Replace(">","&gt;").Replace("\n","<br/>"));
+
 if Invoice.NrInstallments>1 then
 	AddStringRow("Installment", Str(Invoice.Installment)+"/"+Str(Invoice.NrInstallments));
 

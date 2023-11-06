@@ -156,6 +156,11 @@ namespace TAG.Payments.NeuroCredits.Data
 		public string ExternalReference { get; set; }
 
 		/// <summary>
+		/// Custom message provided by user when buying Neuro-Credits™.
+		/// </summary>
+		public string Message { get; set; }
+
+		/// <summary>
 		/// First name of person
 		/// </summary>
 		public string FirstName { get; set; }

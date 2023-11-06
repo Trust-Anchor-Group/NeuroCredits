@@ -30,9 +30,9 @@ namespace TAG.Payments.NeuroCredits
     /// </summary>
     public class NeuroCreditsService : IBuyEDalerService, ISellEDalerService
 	{
-		private const string buyEDalerTemplateIdDev = "2cd3fe8d-1b5e-ab78-b459-dc33ff467d20@legal.";    // For local development, you need to republish the contracts on the local development neuron,
+		private const string buyEDalerTemplateIdDev = "2cdbb8e0-021f-fb5d-482f-12bc2bce0b3a@legal.";    // For local development, you need to republish the contracts on the local development neuron,
 		private const string sellEDalerTemplateIdDev = "2ccae7dd-bea4-cdb1-ec97-0d1b0277db08@legal.";   // and replace these values with your local Contract IDs. Do not check those IDs into the repo.
-		private const string buyEDalerTemplateIdProd = "2cd3ffdf-6c21-3382-880e-301af7abb553@legal.paiwise.tagroot.io";
+		private const string buyEDalerTemplateIdProd = "2cdbb906-6c21-803c-880e-301af73dfc5e@legal.paiwise.tagroot.io";
 		private const string sellEDalerTemplateIdProd = "2cd3fff4-6c21-3386-880e-301af736a5d1@legal.paiwise.tagroot.io";
 
 		/// <summary>
@@ -284,6 +284,9 @@ namespace TAG.Payments.NeuroCredits
 			if (!ContractParameters.TryGetValue("ContractId", out Obj) || !(Obj is string ContractId))
 				ContractId = null;
 
+			if (!ContractParameters.TryGetValue("Message", out Obj) || !(Obj is string Message))
+				Message = string.Empty;
+
 			string AccountName = XmppClient.GetAccount(PI.Jid);
 			string EMail = null;
 
@@ -326,6 +329,7 @@ namespace TAG.Payments.NeuroCredits
 					IsPaid = false,
 					PurchaseAmount = PurchaseAmount,
 					Amount = InstallmentAmount,
+					Message = Message,
 					LateFees = 0,
 					NrReminders = 0,
 					Currency = Currency,

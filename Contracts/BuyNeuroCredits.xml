@@ -56,6 +56,13 @@
 				</paragraph>
 			</description>
 		</stringParameter>
+		<stringParameter name="Message" value="">
+			<description xml:lang="en">
+				<paragraph>
+					<text>A custom text message, for reference.</text>
+				</paragraph>
+			</description>
+		</stringParameter>
 		<durationParameter name="Period" min="P1D" minIncluded="true" max="P3M" maxIncluded="true" exp="Hours(Period)=0 and Minutes(Period)=0 and Seconds(Period)=0">
 			<description xml:lang="en">
 				<paragraph>
