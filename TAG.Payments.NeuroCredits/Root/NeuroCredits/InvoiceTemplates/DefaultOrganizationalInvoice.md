@@ -2,7 +2,8 @@
 ====================================================================================
 
 The following information contains an invoice for the Neuro-Credits™ that was purchased. You will find a QR-encoded link below
-with options to pay the corresponding invoice.
+with options to pay the corresponding invoice. The e-mail also contains a calendar entry named `Reminder.ics`. You can add this
+to your calendar, to receive a payment notification before the invoice is due.
 
 | General Information                                      ||
 |:----------------|----------------------------------------:|

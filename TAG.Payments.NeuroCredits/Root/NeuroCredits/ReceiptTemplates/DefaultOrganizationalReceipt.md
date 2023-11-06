@@ -2,7 +2,7 @@
 ===========
 
 The following information contains the receipt for the purchase of Neuro-Credits™. You will find a QR-encoded link below
-with a reference to the purchase signed contract, for further information.
+with a reference to the signed purchase contract, for further information.
 
 | General Information                                      ||
 |:-----------------|----------------------------------------:|
