@@ -43,7 +43,7 @@ namespace TAG.Payments.NeuroCredits.Data
 		/// <summary>
 		/// Account name.
 		/// </summary>
-		public string Account { get; set; }
+		public CaseInsensitiveString Account { get; set; }
 
 		/// <summary>
 		/// If invoice has been paid.
@@ -299,7 +299,7 @@ namespace TAG.Payments.NeuroCredits.Data
 			List<KeyValuePair<string, object>> Result = new List<KeyValuePair<string, object>>
 			{
 				new KeyValuePair<string, object>("InvoiceNumber", this.InvoiceNumber),
-				new KeyValuePair<string, object>("Account", this.Account),
+				new KeyValuePair<string, object>("Account", this.Account.Value),
 				new KeyValuePair<string, object>("IsPaid", this.IsPaid),
 				new KeyValuePair<string, object>("PurchaseAmount", this.PurchaseAmount),
 				new KeyValuePair<string, object>("PurchasePrice", this.PurchasePrice),
