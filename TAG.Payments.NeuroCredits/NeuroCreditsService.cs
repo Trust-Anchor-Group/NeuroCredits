@@ -25,10 +25,10 @@ using Waher.Script.Objects.VectorSpaces;
 
 namespace TAG.Payments.NeuroCredits
 {
-    /// <summary>
-    /// Serivce for Neuro-Credits™
-    /// </summary>
-    public class NeuroCreditsService : IBuyEDalerService, ISellEDalerService
+	/// <summary>
+	/// Serivce for Neuro-Credits™
+	/// </summary>
+	public class NeuroCreditsService : IBuyEDalerService, ISellEDalerService
 	{
 		private const string buyEDalerTemplateIdDev = "2cdbb8e0-021f-fb5d-482f-12bc2bce0b3a@legal.";    // For local development, you need to republish the contracts on the local development neuron,
 		private const string sellEDalerTemplateIdDev = "2ccae7dd-bea4-cdb1-ec97-0d1b0277db08@legal.";   // and replace these values with your local Contract IDs. Do not check those IDs into the repo.
@@ -287,19 +287,8 @@ namespace TAG.Payments.NeuroCredits
 			if (!ContractParameters.TryGetValue("Message", out Obj) || !(Obj is string Message))
 				Message = string.Empty;
 
-			string AccountName = XmppClient.GetAccount(PI.Jid);
-			string EMail = null;
-
-			// select top 1 EMail from "BrokerAccounts" where UserName=AccountName
-
-			foreach (object Item in await Database.Find("BrokerAccounts", 0, 1, new FilterFieldEqualTo("UserName", AccountName)))
-			{
-				GenericObject GenObj = await Database.Generalize(Item);
-
-				if (GenObj.TryGetFieldValue("EMail", out Obj))
-					EMail = Obj?.ToString();
-			}
-
+			CaseInsensitiveString AccountName = XmppClient.GetAccount(PI.Jid);
+			string EMail = await GetEMail(AccountName);
 			decimal PurchaseAmount = Amount;
 			decimal AmountLeft = Math.Ceiling(Amount * (100 + PeriodInterest) / 100);
 			decimal Price = 0;
@@ -320,6 +309,7 @@ namespace TAG.Payments.NeuroCredits
 				AmountLeft -= InstallmentAmount;
 				AmountLeft = Math.Ceiling(AmountLeft * (100 + PeriodInterest) * 0.01M);
 
+				DateTime CreationTime = DateTime.UtcNow;
 				Invoice Invoice = new Invoice()
 				{
 					InvoiceNumber = await RuntimeCounters.IncrementCounter(NeuroCreditsServiceProvider.ServiceId + ".NrInvoices"),
@@ -336,9 +326,9 @@ namespace TAG.Payments.NeuroCredits
 					DueDate = DueDate,
 					Period = Period,
 					PeriodInterest = PeriodInterest,
-					Created = DateTime.UtcNow,
+					Created = CreationTime,
+					InvoiceDate = CreationTime,
 					Paid = DateTime.MinValue,
-					InvoiceDate = DateTime.MinValue,
 					LastReminder = DateTime.MinValue,
 					NeuroCreditsContractId = ContractId,
 					CancellationContractId = null,
@@ -385,14 +375,37 @@ namespace TAG.Payments.NeuroCredits
 				Invoice.PurchasePrice = Price;
 
 			await Database.Insert(Invoices.ToArray());
+			await SendInvoices(Invoices, EMail, Details.OrganizationalCredit, BillingConfiguration);
 
+			return new PaymentResult(Amount, Currency);
+		}
+
+		private static async Task<string> GetEMail(string AccountName)
+		{
+			string EMail = null;
+
+			// select top 1 EMail from "BrokerAccounts" where UserName=AccountName
+
+			foreach (object Item in await Database.Find("BrokerAccounts", 0, 1, new FilterFieldEqualTo("UserName", AccountName)))
+			{
+				GenericObject GenObj = await Database.Generalize(Item);
+
+				if (GenObj.TryGetFieldValue("EMail", out object Obj))
+					EMail = Obj?.ToString();
+			}
+
+			return EMail;
+		}
+
+		private static async Task SendInvoices(IEnumerable<Invoice> Invoices, string EMail, bool OrganizationalCredit, BillingConfiguration BillingConfiguration)
+		{
 			string InvoiceTemplateFileName;
 			string ReceiptTemplateFileName;
 			string StylesFileName;
 
 			StylesFileName = Path.Combine(Gateway.RootFolder, "NeuroCredits", "MailStyles", "Default.css");
 
-			if (Details.OrganizationalCredit)
+			if (OrganizationalCredit)
 			{
 				ReceiptTemplateFileName = Path.Combine(Gateway.RootFolder, "NeuroCredits", "ReceiptTemplates", "DefaultOrganizationalReceipt.md");
 				InvoiceTemplateFileName = Path.Combine(Gateway.RootFolder, "NeuroCredits", "InvoiceTemplates", "DefaultOrganizationalInvoice.md");
@@ -486,31 +499,31 @@ namespace TAG.Payments.NeuroCredits
 							AppendCalendar(Reminder, "TZOFFSETTO:" + TS.Hours.ToString("D2") + TS.Minutes.ToString("D2"));
 							AppendCalendar(Reminder, "TZNAME:" + TS.Hours.ToString("D2") + (TS.Minutes == 0 ? string.Empty : TS.Minutes.ToString("D2")));
 
-							AppendCalendar(Reminder, "DTSTART:" + Rule.DateStart.Year.ToString("D4") + 
-								Rule.DaylightTransitionStart.Month.ToString("D2") + Rule.DaylightTransitionStart.Day.ToString("D2") + "T" + 
-								Rule.DaylightTransitionStart.TimeOfDay.Hour.ToString("D2") + 
-								Rule.DaylightTransitionStart.TimeOfDay.Minute.ToString("D2") + 
+							AppendCalendar(Reminder, "DTSTART:" + Rule.DateStart.Year.ToString("D4") +
+								Rule.DaylightTransitionStart.Month.ToString("D2") + Rule.DaylightTransitionStart.Day.ToString("D2") + "T" +
+								Rule.DaylightTransitionStart.TimeOfDay.Hour.ToString("D2") +
+								Rule.DaylightTransitionStart.TimeOfDay.Minute.ToString("D2") +
 								Rule.DaylightTransitionStart.TimeOfDay.Second.ToString("D2"));
 							AppendCalendar(Reminder, "END:DAYLIGHT");
 						}
 
 						AppendCalendar(Reminder, "END:VTIMEZONE");
 						AppendCalendar(Reminder, "BEGIN:VEVENT");
-						AppendCalendar(Reminder, "DTSTART;TZID=" + TZ.Id + ":" + Invoice.DueDate.Year.ToString("D4")+
+						AppendCalendar(Reminder, "DTSTART;TZID=" + TZ.Id + ":" + Invoice.DueDate.Year.ToString("D4") +
 							Invoice.DueDate.Month.ToString("D2") + Invoice.DueDate.Day.ToString("D2") + "T100000");
-						AppendCalendar(Reminder, "DTEND;TZID=" + TZ.Id + ":" + Invoice.DueDate.Year.ToString("D4") + 
+						AppendCalendar(Reminder, "DTEND;TZID=" + TZ.Id + ":" + Invoice.DueDate.Year.ToString("D4") +
 							Invoice.DueDate.Month.ToString("D2") + Invoice.DueDate.Day.ToString("D2") + "T103000");
-						AppendCalendar(Reminder, "DTSTAMP:" + TP.Year.ToString("D4") + TP.Month.ToString("D2") + 
-							TP.Day.ToString("D2") + "T" + TP.Hour.ToString("D2") + TP.Minute.ToString("D2") + 
+						AppendCalendar(Reminder, "DTSTAMP:" + TP.Year.ToString("D4") + TP.Month.ToString("D2") +
+							TP.Day.ToString("D2") + "T" + TP.Hour.ToString("D2") + TP.Minute.ToString("D2") +
 							TP.Second.ToString("D2") + "Z");
-						
+
 						string Organizer = DomainConfiguration.Instance.HumanReadableName;
 						if (string.IsNullOrEmpty(Organizer))
 							Organizer = Gateway.Domain;
 
 						AppendCalendar(Reminder, "ORGANIZER;CN=" + Organizer + ":mailto:" + MailConfiguration.Address);
 						AppendCalendar(Reminder, "UID:" + Guid.NewGuid().ToString());
-						AppendCalendar(Reminder, "ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=FALSE;CN=" + 
+						AppendCalendar(Reminder, "ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=FALSE;CN=" +
 							Invoice.PersonalName + ":mailto:" + EMail);
 						AppendCalendar(Reminder, "DESCRIPTION:" + Text.Replace("\r\n", "\n").Replace('\r', '\n').Replace("\n", "\\n"));
 						AppendCalendar(Reminder, "X-ALT-DESC;FMTTYPE=text/html:" + HTML.Replace("\r\n", "\n").Replace('\r', '\n').Replace("\n", "\\n"));
@@ -537,8 +550,6 @@ namespace TAG.Payments.NeuroCredits
 			{
 				Log.Critical(ex, ObjectId);
 			}
-
-			return new PaymentResult(Amount, Currency);
 		}
 
 		private static void AppendCalendar(StringBuilder Calendar, string Row)
@@ -918,5 +929,75 @@ namespace TAG.Payments.NeuroCredits
 
 		#endregion
 
+		#region Reminders
+
+		internal static async Task SendReminders()
+		{
+			Dictionary<CaseInsensitiveString, LinkedList<Invoice>> PersonalByAccount = null;
+			Dictionary<CaseInsensitiveString, LinkedList<Invoice>> OrganizationalByAccount = null;
+
+			foreach (Invoice Invoice in await Database.Find<Invoice>(new FilterFieldLesserThan("DueDate", DateTime.Today.AddDays(-1))))
+			{
+				if (Invoice.IsOrganizational)
+					AddReminder(ref OrganizationalByAccount, Invoice);
+				else
+					AddReminder(ref PersonalByAccount, Invoice);
+			}
+
+			await SendReminders(PersonalByAccount);
+			await SendReminders(OrganizationalByAccount);
+		}
+
+		private static void AddReminder(ref Dictionary<CaseInsensitiveString, LinkedList<Invoice>> ByAccount, Invoice Invoice)
+		{
+			if (ByAccount is null)
+				ByAccount = new Dictionary<CaseInsensitiveString, LinkedList<Invoice>>();
+
+			if (!ByAccount.TryGetValue(Invoice.Account, out LinkedList<Invoice> Invoices))
+			{
+				Invoices = new LinkedList<Invoice>();
+				ByAccount[Invoice.Account] = Invoices;
+			}
+
+			Invoices.AddLast(Invoice);
+		}
+
+		private static async Task SendReminders(Dictionary<CaseInsensitiveString, LinkedList<Invoice>> ByAccount)
+		{
+			if (!(ByAccount is null))
+			{
+				BillingConfiguration BillingConfiguration = await BillingConfiguration.GetCurrent();
+
+				foreach (KeyValuePair<CaseInsensitiveString, LinkedList<Invoice>> P in ByAccount)
+				{
+					CaseInsensitiveString AccountName = P.Key;
+					LinkedList<Invoice> Invoices = P.Value;
+					DateTime TP = DateTime.UtcNow;
+
+					try
+					{
+						foreach (Invoice Invoice in Invoices)
+						{
+							Invoice.LateFees += Math.Ceiling(Invoice.AmountLeft * Invoice.PeriodInterest / 100);
+							Invoice.DueDate += Invoice.Period;
+							Invoice.InvoiceDate = TP;
+							Invoice.LastReminder = TP;
+							Invoice.NrReminders++;
+						}
+
+						await Database.Update(Invoices);
+
+						string EMail = await GetEMail(P.Key);
+						await SendInvoices(Invoices, EMail, Invoices.First.Value.IsOrganizational, BillingConfiguration);
+					}
+					catch (Exception ex)
+					{
+						Log.Critical(ex, AccountName);
+					}
+				}
+			}
+		}
+
+		#endregion
 	}
 }

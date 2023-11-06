@@ -2,16 +2,17 @@
 using System;
 using System.Threading.Tasks;
 using TAG.Payments.NeuroCredits.Configuration;
+using Waher.Events;
 using Waher.IoTGateway;
 using Waher.Persistence;
 using Waher.Runtime.Inventory;
 
 namespace TAG.Payments.NeuroCredits
 {
-    /// <summary>
-    /// Serivce provider for Neuro-Credits™
-    /// </summary>
-    public class NeuroCreditsServiceProvider : IConfigurableModule, IBuyEDalerServiceProvider, ISellEDalerServiceProvider
+	/// <summary>
+	/// Serivce provider for Neuro-Credits™
+	/// </summary>
+	public class NeuroCreditsServiceProvider : IConfigurableModule, IBuyEDalerServiceProvider, ISellEDalerServiceProvider
 	{
 		/// <summary>
 		/// Serivce provider for Neuro-Credits™
@@ -27,6 +28,8 @@ namespace TAG.Payments.NeuroCredits
 		/// </summary>
 		public Task Start()
 		{
+			Gateway.OnAfterBackup += this.Gateway_OnAfterBackup;
+
 			return Task.CompletedTask;
 		}
 
@@ -35,7 +38,21 @@ namespace TAG.Payments.NeuroCredits
 		/// </summary>
 		public Task Stop()
 		{
+			Gateway.OnAfterBackup -= this.Gateway_OnAfterBackup;
+
 			return Task.CompletedTask;
+		}
+
+		private async void Gateway_OnAfterBackup(object sender, EventArgs e)
+		{
+			try
+			{
+				await NeuroCreditsService.SendReminders();
+			}
+			catch (Exception ex)
+			{
+				Log.Critical(ex);
+			}
 		}
 
 		#endregion
