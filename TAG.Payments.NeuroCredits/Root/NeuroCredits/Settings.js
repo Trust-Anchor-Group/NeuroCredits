@@ -1529,17 +1529,14 @@ function LoadMore(Button, Offset, MaxCount, Type)
 					Td.innerText = Invoice.installment + "/" + Invoice.nrInstallments;
 
 					Td = document.createElement("TD");
-					Td.setAttribute("style", "text-align:center");
+					Td.setAttribute("style", "text-align:right");
 					Tr.appendChild(Td);
 
-					if (Invoice.contractId)
-					{
-						var A = document.createElement("A");
-						A.setAttribute("href", "/Contract.md?ID=" + Invoice.contractId);
-						A.setAttribute("target", "_blank");
-						A.innerText = "Contract";
-						Td.appendChild(A);
-					}
+					var A = document.createElement("A");
+					A.setAttribute("href", "Invoice.md?Nr=" + Invoice.invoiceNumber);
+					A.setAttribute("target", "_blank");
+					A.innerText = Invoice.invoiceNumber;
+					Td.appendChild(A);
 				}
 
 				if (c < MaxCount)

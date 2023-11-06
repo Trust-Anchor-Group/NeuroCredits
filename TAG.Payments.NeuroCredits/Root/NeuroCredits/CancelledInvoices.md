@@ -17,8 +17,8 @@ Cancelled invoices
 
 Below you can review cancelled invoices, and if they have been paid, revoked, aborted, etc.
 
-| Inv.Nr | Recipient | Pers./Org.Nr | Amount Paid | Currency | Created | Paid | \#Reminders | Installment | Contract |
-|-------:|:----------|:------------:|------------:|:---------|:-------:|:----:|------------:|:-----------:|:---------|
+| Inv.Nr | Recipient | Pers./Org.Nr | Amount Paid | Currency | Created | Paid | \#Reminders | Installment | Details |
+|-------:|:----------|:------------:|------------:|:---------|:-------:|:----:|------------:|:-----------:|--------:|
 {{
 Invoices:=select 
 	top 20 * 
@@ -40,7 +40,7 @@ foreach Invoice in Invoices do
 	]]| ((Invoice.Paid)) [[;
 	]]| ((Invoice.NrReminders)) [[;
 	]]| ((Invoice.Installment))/((Invoice.NrInstallments)) [[;
-	]]| ((empty(Invoice.CancellationContractId)?"":"<a href=\"/Contract.md?ID="+Invoice.CancellationContractId+"\" target=\"_blank\">Contract</a>")) [[;
+	]]| <a href="Invoice.md?Nr=((Invoice.InvoiceNumber))" target="_blank">((Invoice.InvoiceNumber))</a> [[;
 	]]|
 [[
 );

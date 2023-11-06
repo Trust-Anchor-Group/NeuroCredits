@@ -17,8 +17,8 @@ Pending invoices
 
 Below you can review pending invoices.
 
-| Inv.Nr | Recipient | Pers./Org.Nr | Total | Left | Currency | Created | Due | \#Reminders | Installment | Contract |
-|-------:|:----------|:------------:|------:|-----:|:---------|:-------:|:---:|------------:|:-----------:|:---------|
+| Inv.Nr | Recipient | Pers./Org.Nr | Total | Left | Currency | Created | Due | \#Reminders | Installment | Details |
+|-------:|:----------|:------------:|------:|-----:|:---------|:-------:|:---:|------------:|:-----------:|--------:|
 {{
 Invoices:=select 
 	top 20 * 
@@ -41,7 +41,7 @@ foreach Invoice in Invoices do
 	]]| ((Invoice.DueDate.ToShortDateString();)) [[;
 	]]| ((Invoice.NrReminders)) [[;
 	]]| ((Invoice.Installment))/((Invoice.NrInstallments)) [[;
-	]]| ((empty(Invoice.NeuroCreditsContractId)?"":"<a href=\"/Contract.md?ID="+Invoice.NeuroCreditsContractId+"\" target=\"_blank\">Contract</a>")) [[;
+	]]| <a href="Invoice.md?Nr=((Invoice.InvoiceNumber))" target="_blank">((Invoice.InvoiceNumber))</a> [[;
 	]]|
 [[
 );

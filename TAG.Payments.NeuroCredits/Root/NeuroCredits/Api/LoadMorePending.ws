@@ -26,6 +26,5 @@ offset
 	"due": Invoice.DueDate.ToShortDateString(),
 	"nrReminders": Invoice.NrReminders,
 	"installment": Invoice.Installment,
-	"nrInstallments": Invoice.NrInstallments,
-	"contractId": Invoice.NeuroCreditsContractId
+	"nrInstallments": Invoice.NrInstallments
 }]

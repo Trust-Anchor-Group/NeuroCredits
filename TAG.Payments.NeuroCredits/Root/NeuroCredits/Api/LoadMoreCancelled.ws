@@ -25,6 +25,5 @@ offset
 	"paid": Invoice.Paid.ToString(),
 	"nrReminders": Invoice.NrReminders,
 	"installment": Invoice.Installment,
-	"nrInstallments": Invoice.NrInstallments,
-	"contractId": Invoice.CancellationContractId
+	"nrInstallments": Invoice.NrInstallments
 }]
