@@ -209,7 +209,10 @@ input[type="radio"] + label:before
     margin-right: 1em;
     position: absolute;
     left: 0;
+    vertical-align:center;
+    top: 1px;
     bottom: 1px;
+    margin: auto;
 
     border-radius: 1em;
     font-size: 1.75em;
@@ -229,4 +232,27 @@ input[type="radio"]:checked + label:before
     color: ¤ButtonColor¤;
     text-align: center;
     line-height: 0.75em;
+}
+
+label > img
+{
+    max-height:5em;
+    width:auto;
+    vertical-align:middle;
+}
+
+.checkout
+{
+}
+
+.checkoutQuery
+{
+}
+
+.checkoutServices
+{
+}
+
+.checkoutService
+{
 }

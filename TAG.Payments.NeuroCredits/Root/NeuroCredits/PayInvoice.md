@@ -4,6 +4,7 @@ Date: 2023-11-07
 Author: Peter Waher
 Javascript: Settings.js
 Javascript: /Events.js
+Javascript: /Checkout.js
 CSS: PayInvoice.cssx
 Cache-Control: max-age=0, no-cache, no-store
 Parameter: Nr
@@ -137,5 +138,6 @@ if !empty(Invoice.NeuroCreditsContractId) then
 <div>
 <button type="button" onclick="ShowSimpleInformation()" class="negButton">Hide Details</button>
 </div>
-
 </div>
+
+![Checkout](/Checkout.md?Description={{UrlEncode("Payment of invoice "+Str(Nr))}}&Amount={{Invoice.AmountLeft}}&Currency={{Invoice.Currency}}&Country={{Invoice.Country}}&Callback=TAG.Payments.NeuroCredits.NeuroCreditsService.PaymentReceived&State={{Nr}}&ExcludeProvider=TAG.Payments.NeuroCredits.NeuroCreditsServiceProvider)

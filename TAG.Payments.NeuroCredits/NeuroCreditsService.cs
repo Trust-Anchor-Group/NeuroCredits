@@ -1148,5 +1148,14 @@ namespace TAG.Payments.NeuroCredits
 		}
 
 		#endregion
+
+		#region Payments
+
+		public static async Task PaymentReceived(PaymentResult Result, object State)
+		{
+		}
+
+		#endregion
+
 	}
 }
