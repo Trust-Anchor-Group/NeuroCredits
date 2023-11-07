@@ -1616,17 +1616,17 @@ function ResendInvoice(InvoiceNr)
 function ShowDetailedInformation()
 {
 	var Div = document.getElementById("SimpleInformation");
-	Div.setat("style", "display:none");
+	Div.setAttribute("style", "display:none");
 
 	Div = document.getElementById("DetailedInformation");
-	Div.setat("style", "display:block");
+	Div.setAttribute("style", "display:block");
 }
 
 function ShowSimpleInformation()
 {
 	var Div = document.getElementById("SimpleInformation");
-	Div.setat("style", "display:block");
+	Div.setAttribute("style", "display:block");
 
 	Div = document.getElementById("DetailedInformation");
-	Div.setat("style", "display:none");
+	Div.setAttribute("style", "display:none");
 }
