@@ -17,6 +17,22 @@ Invoice:=select top 1 * from TAG.Payments.NeuroCredits.Data.Invoice where Invoic
 if !exists(Invoice) then Forbidden("Access denied.");
 if Invoice.Key!=Key then Forbidden("Access denied.");
 OneRow(s):=empty(s)?"":s.Replace("\r\n","\n").Replace("\r","\n").Replace("&","&amp;").Replace("<","&lt;").Replace(">","&gt;").Replace("\n","<br/>");
+DurationToString(D):=
+(
+	M:=[[D.Years,D.Months,D.Days,D.Hours,D.Minutes,D.Seconds],[
+		TextUnit(D.Years,"year","years"),
+		TextUnit(D.Months,"month","months"),
+		TextUnit(D.Days,"day","days"),
+		TextUnit(D.Hours,"hour","hours"),
+		TextUnit(D.Minutes,"minute","minutes"),
+		TextUnit(D.Seconds,"second","seconds")]]T;
+	M:=[x in M: x[0]!=0];
+	v:=[foreach x in M do x[0]+" "+x[1]];
+	s:=concat(v,", ");
+	k:=s.LastIndexOf(", ");
+	if k>=0 then s:=s.Remove(k,2).Insert(k," and ");
+	s
+);
 Nr}}
 =================
 
@@ -37,20 +53,20 @@ Due date: {{Invoice.DueDate.ToLongDateString()}}
 </span>
 </p>
 
-| General Information  ||
-|:----------|----------:|
-| Purchase Amount | {{Invoice.PurchaseAmount}} {{Invoice.Currency}} |
-| Purchase Price | {{Invoice.PurchasePrice}} {{Invoice.Currency}} |
-| Amount | {{Invoice.Amount}} {{Invoice.Currency}} |
-| Late Fees | {{Invoice.LateFees}} {{Invoice.Currency}} |
-| Invoice Fee | {{Invoice.InvoiceFee}} {{Invoice.Currency}} |
-| Amount Paid | {{Invoice.AmountPaid}} {{Invoice.Currency}} |
-| Total Amount | {{Invoice.TotalAmount}} {{Invoice.Currency}} |
-| **Amount Left** | **{{Invoice.AmountLeft}} {{Invoice.Currency}}** |
-| Period | {{Invoice.Period}} |
-| Period Interest | {{Invoice.PeriodInterest}} % |
-| Installment | {{Invoice.Installment}}/{{Invoice.NrInstallments}} |
-| Message | {{OneRow(Invoice.Message)}} |
+| General Information                                                  ||
+|:-----------------|---------------------------------------------------:|
+| Purchase Amount: | {{Invoice.PurchaseAmount}} {{Invoice.Currency}}    |
+| Purchase Price:  | {{Invoice.PurchasePrice}} {{Invoice.Currency}}     |
+| Message:         | {{OneRow(Invoice.Message)}}                        |
+| Period:          | {{DurationToString(Invoice.Period)}}               |
+| Period Interest: | {{Invoice.PeriodInterest}} %                       |
+| Installment:     | {{Invoice.Installment}}/{{Invoice.NrInstallments}} |
+| Invoice Fee:     | {{Invoice.InvoiceFee}} {{Invoice.Currency}}        |
+| Late Fees:       | {{Invoice.LateFees}} {{Invoice.Currency}}          |
+| Amount:          | {{Invoice.Amount}} {{Invoice.Currency}}            |
+| Amount Paid:     | {{Invoice.AmountPaid}} {{Invoice.Currency}}        |
+| Total Amount:    | {{Invoice.TotalAmount}} {{Invoice.Currency}}       |
+| **Amount Left**: | **{{Invoice.AmountLeft}} {{Invoice.Currency}}**    |
 
 <button type="button" onclick="ShowDetailedInformation()" class="posButton">Show Details</button>
 </div>
@@ -61,22 +77,20 @@ Due date: {{Invoice.DueDate.ToLongDateString()}}
 | Is paid | {{Invoice.IsPaid}} |
 | Purchase Amount | {{Invoice.PurchaseAmount}} {{Invoice.Currency}} |
 | Purchase Price | {{Invoice.PurchasePrice}} {{Invoice.Currency}} |
-| Amount | {{Invoice.Amount}} {{Invoice.Currency}} |
-| Late Fees | {{Invoice.LateFees}} {{Invoice.Currency}} |
+| Message | {{OneRow(Invoice.Message)}} |
+| Period | {{DurationToString(Invoice.Period)}} |
+| Period Interest | {{Invoice.PeriodInterest}} % |
+| Installment | {{Invoice.Installment}}/{{Invoice.NrInstallments}} |
 | Invoice Fee | {{Invoice.InvoiceFee}} {{Invoice.Currency}} |
+| Late Fees | {{Invoice.LateFees}} {{Invoice.Currency}} |
+| Amount | {{Invoice.Amount}} {{Invoice.Currency}} |
 | Amount Paid | {{Invoice.AmountPaid}} {{Invoice.Currency}} |
 | Total Amount | {{Invoice.TotalAmount}} {{Invoice.Currency}} |
 | **Amount Left** | **{{Invoice.AmountLeft}} {{Invoice.Currency}}** |
 | \#Reminders | {{Invoice.NrReminders}} |
 | Due Date | {{Invoice.DueDate.ToShortDateString()}} |
-| Period | {{Invoice.Period}} |
-| Period Interest | {{Invoice.PeriodInterest}} % |
-| Installment | {{Invoice.Installment}}/{{Invoice.NrInstallments}} |
 | Created | {{Invoice.Created}} |
-| Paid | {{Invoice.IsPaid ? Invoice.Paid : ""}} |
 | Invoice Date | {{Invoice.InvoiceDate.ToShortDateString()}} |
-| External Reference | {{OneRow(Invoice.ExternalReference)}} |
-| Message | {{OneRow(Invoice.Message)}} |
 
 | Personal information about buyer ||
 |:----------------|:----------------|
