@@ -134,5 +134,8 @@ if !empty(Invoice.NeuroCreditsContractId) then
 )
 }}
 
+<div>
 <button type="button" onclick="ShowSimpleInformation()" class="negButton">Hide Details</button>
+</div>
+
 </div>

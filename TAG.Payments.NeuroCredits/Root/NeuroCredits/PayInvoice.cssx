@@ -1,13 +1,22 @@
 ﻿body
 {
+	color:¤TextColor¤;
+	background-color:¤BackgroundColor¤;
+	font-family: "Segoe UI", "Segoe UI Web Regular", "Segoe UI Symbol", "Helvetica Neue", "BBAlpha Sans", "S60 Sans", Arial, sans-serif;
+	width:100%;
+	height:100%;
+	position:relative;
+	margin:1em 2em;
 }
 
 main
 {
+	font-name:Helvetica;
 }
 
 p
 {
+	padding-bottom:0.75em;
 }
 
 .simpleName
@@ -30,48 +39,194 @@ p
 
 table
 {
+    margin-bottom: 1.5em;
+    border-collapse: collapse;
+    box-shadow: 0.3em 0.3em 0.3em rgba(0,0,0,0.1);
+    border-collapse: separate;
+    border-width: 0;
+    border-spacing:0;
 }
 
-thead
+table caption
 {
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.5);
 }
 
-tbody
+tr:nth-child(odd)
 {
+    background-color: rgba(0,0,0,0.02);
 }
 
-tr
+tr:nth-child(even)
 {
+    background-color: rgba(0,0,0,0.1);
+}
+
+table, th, td
+{
+    border: 0;
 }
 
 th
 {
+    background-color: ¤ButtonColor¤;
+    color: ¤ButtonTextColor¤;
 }
 
-td
+th, td
 {
-}
-
-button
-{
-}
-
-.posButton
-{
-}
-
-.negButton
-{
+    padding: 0.2em 0.6em 0.2em 0.6em;
 }
 
 img
 {
 }
 
-figure
+img.aloneUnsized
 {
+	max-width:100%;
+	image-orientation:from-image;
 }
 
-figcaption
+figure
 {
+	display:inline-block;
+	text-align:center;
+}
+
+figure img
+{
+    max-width:100%;
+    height:auto;
+}
+
+figure figcaption
+{
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.5);
+    padding: 0.7em;
+}
+
+input[type=button], input[type=submit], input[type=reset], button 
+{
+    background-color: ¤ButtonColor¤;
+    border: none;
+    color: ¤ButtonTextColor¤;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    -webkit-transition-duration: 0.1s;
+    transition-duration: 0.1s;
+    border-radius: 4px;
+}
+
+.posButton
+{
+	background-color: ¤PosColor¤;
+}
+
+.negButton
+{
+	background-color: ¤NegColor¤;
+}
+
+input[type="checkbox"]
+{
+	display:none;
+}
+
+input[type="checkbox"] + label
+{
+	display: inline-block;
+    cursor: pointer;
+    position: relative;
+    padding-left: 2.5em;
+	padding-bottom:0.3em;
+    margin-right: 1em;
+}
+
+input[type="checkbox"] + label:before
+{
+	content: "";
+    display: inline-block;
+ 
+    width: 1em;
+    height: 1em;
+ 
+    margin-right: 1em;
+    position: absolute;
+    left: 0;
+    bottom: 1px;
+
+    border-radius: 0.15em;
+    font-size: 1.75em;
+    box-sizing: border-box;
+    border: 2px solid ¤ButtonColor¤;
+    background-color: ¤GraphBgColor¤;
+    color:¤TextColor¤;
+}
+
+input[type="checkbox"] + label:before:focus
+{
+    border: 3px solid ¤ButtonColor¤;
+}
+
+input[type="checkbox"]:checked + label:before
+{
+    content: "\2713";
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.3);
+    color: ¤TextColor¤;
+    text-align: center;
+    line-height: 0.75em;
+}
+
+input[type="radio"]
+{
+	display:none;
+}
+
+input[type="radio"] + label
+{
+	display: inline-block;
+    cursor: pointer;
+    position: relative;
+    padding-left: 2.5em;
+	padding-bottom:0.3em;
+    margin-right: 1em;
+}
+
+input[type="radio"] + label:before
+{
+	content: "";
+    display: inline-block;
+ 
+    width: 1em;
+    height: 1em;
+ 
+    margin-right: 1em;
+    position: absolute;
+    left: 0;
+    bottom: 1px;
+
+    border-radius: 1em;
+    font-size: 1.75em;
+    box-sizing: border-box;
+    border: 2px solid ¤ButtonColor¤;
+}
+
+input[type="radio"] + label:before:focus
+{
+    border: 3px solid ¤ButtonColor¤;
+}
+
+input[type="radio"]:checked + label:before
+{
+    content: "\2022";
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.3);
+    color: ¤ButtonColor¤;
+    text-align: center;
+    line-height: 0.75em;
 }
