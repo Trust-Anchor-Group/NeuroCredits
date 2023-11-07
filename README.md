@@ -29,6 +29,7 @@ They can also be used standalone.
 | [Waher.Runtime.Settings](https://www.nuget.org/packages/Waher.Runtime.Settings/)   | Provides easy access to persistent settings. |
 | [Waher.Runtime.Threading](https://www.nuget.org/packages/Waher.Runtime.Threading/) | Simplifies the creation of user-specific semaphores in a multi-threaded multi-user environment. |
 | [Waher.Security](https://www.nuget.org/packages/Waher.Security/)                   | Contains basic cryptography functions. |
+| [Waher.Security.SHA3](https://www.nuget.org/packages/Waher.Security.SHA3/)         | Provides an implementation of the SHA3 algorithm. |
 
 ## Installable Package
 

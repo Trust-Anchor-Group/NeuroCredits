@@ -8,7 +8,6 @@ using TAG.Payments.NeuroCredits.Configuration;
 using TAG.Payments.NeuroCredits.Data;
 using Waher.Content;
 using Waher.Content.Html.Css;
-using Waher.Content.Html.Elements;
 using Waher.Content.Markdown;
 using Waher.Content.Multipart;
 using Waher.Events;
@@ -359,6 +358,7 @@ namespace TAG.Payments.NeuroCredits
 					Jid = PI.Jid,
 					PhoneNumber = PI.PhoneNumber,
 					EMail = EMail,
+					Salt = Gateway.NextBytes(32)
 				};
 
 				if (Details.OrganizationalCredit)
@@ -700,7 +700,7 @@ namespace TAG.Payments.NeuroCredits
 		/// <param name="Markdown">Markdown content.</param>
 		/// <param name="Styles">Styles to use in the formatted message.</param>
 		/// <param name="CalendarReminder">Calendar reminder entry.</param>
-		public static async Task<bool> SendEMail(string EMail, string Subject, string Markdown, string Styles, string CalendarReminder, 
+		public static async Task<bool> SendEMail(string EMail, string Subject, string Markdown, string Styles, string CalendarReminder,
 			string CalendarFileName, string CalendarMethod)
 		{
 			try

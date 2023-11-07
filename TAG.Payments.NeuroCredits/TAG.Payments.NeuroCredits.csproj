@@ -31,6 +31,8 @@
     <None Remove="Root\NeuroCredits\Mail.md" />
     <None Remove="Root\NeuroCredits\MailStyles\Default.css" />
     <None Remove="Root\NeuroCredits\Organizations.md" />
+    <None Remove="Root\NeuroCredits\PayInvoice.cssx" />
+    <None Remove="Root\NeuroCredits\PayInvoice.md" />
     <None Remove="Root\NeuroCredits\PendingInvoices.md" />
     <None Remove="Root\NeuroCredits\ReceiptTemplates\DefaultOrganizationalReceipt.md" />
     <None Remove="Root\NeuroCredits\ReceiptTemplates\DefaultPersonalReceipt.md" />
@@ -59,6 +61,12 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Root\NeuroCredits\Billing.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Root\NeuroCredits\PayInvoice.cssx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Root\NeuroCredits\PayInvoice.md">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Root\NeuroCredits\Invoice.md">
@@ -136,6 +144,7 @@
     <PackageReference Include="Waher.Runtime.Settings" Version="1.0.10" />
     <PackageReference Include="Waher.Runtime.Threading" Version="1.2.1" />
     <PackageReference Include="Waher.Security" Version="1.0.8" />
+    <PackageReference Include="Waher.Security.SHA3" Version="1.0.3" />
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">

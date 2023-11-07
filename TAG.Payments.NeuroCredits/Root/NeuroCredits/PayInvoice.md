@@ -1,27 +1,63 @@
 ﻿Title: Invoice {{Nr}}
-Description: Information about invoice {{Nr}}.
-Date: 2023-11-06
+Description: Allows a user to pay the invoice {{Nr}}.
+Date: 2023-11-07
 Author: Peter Waher
-Master: /Master.md
 Javascript: Settings.js
 Javascript: /Events.js
+CSS: PayInvoice.cssx
 Cache-Control: max-age=0, no-cache, no-store
-UserVariable: User
-Privilege: Admin.Payments.NeuroCredits
 Parameter: Nr
-Login: /Login.md
+Parameter: Key
 
 ========================================================================
 
-Invoice {{Nr}}
+Invoice {{
+if empty(Key) or empty(Nr) then Forbidden("Access denied.");
+Invoice:=select top 1 * from TAG.Payments.NeuroCredits.Data.Invoice where InvoiceNumber=Nr;
+if !exists(Invoice) then Forbidden("Access denied.");
+if Invoice.Key!=Key then Forbidden("Access denied.");
+OneRow(s):=empty(s)?"":s.Replace("\r\n","\n").Replace("\r","\n").Replace("&","&amp;").Replace("<","&lt;").Replace(">","&gt;").Replace("\n","<br/>");
+Nr}}
 =================
+
+<div id="SimpleInformation" style="display:block">
+
+<p>
+<span class="simpleName">
+{{
+if Invoice.IsOrganizational then 
+	]]((Invoice.OrganizationName))[[
+else
+	]]((Invoice.PersonalName))[[;
+}}
+</span>
+<br/>
+<span class="dueDate">
+Due date: {{Invoice.DueDate.ToLongDateString()}}
+</span>
+</p>
 
 | General Information  ||
 |:----------|----------:|
-| Account | `{{Invoice:=select top 1 * from TAG.Payments.NeuroCredits.Data.Invoice where InvoiceNumber=Nr;
-if !exists(Invoice) then NotFound("Invoice "+Nr+" not found.");
-OneRow(s):=empty(s)?"":s.Replace("\r\n","\n").Replace("\r","\n").Replace("&","&amp;").Replace("<","&lt;").Replace(">","&gt;").Replace("\n","<br/>");
-Invoice.Account}}` |
+| Purchase Amount | {{Invoice.PurchaseAmount}} {{Invoice.Currency}} |
+| Purchase Price | {{Invoice.PurchasePrice}} {{Invoice.Currency}} |
+| Amount | {{Invoice.Amount}} {{Invoice.Currency}} |
+| Late Fees | {{Invoice.LateFees}} {{Invoice.Currency}} |
+| Invoice Fee | {{Invoice.InvoiceFee}} {{Invoice.Currency}} |
+| Amount Paid | {{Invoice.AmountPaid}} {{Invoice.Currency}} |
+| Total Amount | {{Invoice.TotalAmount}} {{Invoice.Currency}} |
+| **Amount Left** | **{{Invoice.AmountLeft}} {{Invoice.Currency}}** |
+| Period | {{Invoice.Period}} |
+| Period Interest | {{Invoice.PeriodInterest}} % |
+| Installment | {{Invoice.Installment}}/{{Invoice.NrInstallments}} |
+| Message | {{OneRow(Invoice.Message)}} |
+
+<button type="button" onclick="ShowDetailedInformation()" class="posButton">Show Details</button>
+</div>
+<div id="DetailedInformation" style="display:none">
+
+| General Information  ||
+|:----------|----------:|
 | Is paid | {{Invoice.IsPaid}} |
 | Purchase Amount | {{Invoice.PurchaseAmount}} {{Invoice.Currency}} |
 | Purchase Price | {{Invoice.PurchasePrice}} {{Invoice.Currency}} |
@@ -41,12 +77,6 @@ Invoice.Account}}` |
 | Invoice Date | {{Invoice.InvoiceDate.ToShortDateString()}} |
 | External Reference | {{OneRow(Invoice.ExternalReference)}} |
 | Message | {{OneRow(Invoice.Message)}} |
-{{
-if !empty(Invoice.NeuroCreditsContractId) then ]]| Purchase contract | <a href="/Contract.md?ID=((Invoice.NeuroCreditsContractId))" target="_blank">((Invoice.NeuroCreditsContractId))</a> |
-[[;
-if !empty(Invoice.CancellationContractId) then ]]| Cancellation contract | <a href="/Contract.md?ID=((Invoice.CancellationContractId))" target="_blank">((Invoice.CancellationContractId))</a> |
-[[;
-}}
 
 | Personal information about buyer ||
 |:----------------|:----------------|
@@ -79,8 +109,16 @@ if !empty(Invoice.CancellationContractId) then ]]| Cancellation contract | <a hr
 | Country | ((Invoice.OrganizationCountry)) |
 [[}}
 
-{{if !Invoice.IsPaid then ]]
-<button type="button" class="posButton" onclick="ResendInvoice( ((Nr)) )">Resend Invoice</button>
-<button type="button" class="posButton" onclick="OpenUrl('PayInvoice.md?Nr=((Nr))&Key=((Invoice.Key))')">Payment Link...</button>
-[[}}
-<button type="button" class="negButton" onclick="Close()">Close</button>
+{{
+if !empty(Invoice.NeuroCreditsContractId) then
+(
+	PayUrl:="iotsc:"+Invoice.NeuroCreditsContractId;
+	PayUrl:=Waher.IoTGateway.Gateway.GetUrl("/QR/"+UrlEncode(PayUrl));
+	]]![Purchase contract]([[;
+	]]((PayUrl))[[;
+	]])[[
+)
+}}
+
+<button type="button" onclick="ShowSimpleInformation()" class="negButton">Hide Details</button>
+</div>

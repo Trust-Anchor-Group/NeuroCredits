@@ -6,6 +6,7 @@ using Waher.Content;
 using Waher.Persistence;
 using Waher.Persistence.Attributes;
 using Waher.Script;
+using Waher.Security.SHA3;
 
 namespace TAG.Payments.NeuroCredits.Data
 {
@@ -297,6 +298,11 @@ namespace TAG.Payments.NeuroCredits.Data
 		public string OrganizationCountry { get; set; }
 
 		/// <summary>
+		/// Salt of invoice.
+		/// </summary>
+		public byte[] Salt { get; set; }
+
+		/// <summary>
 		/// Gets invoice-related tags.
 		/// </summary>
 		/// <returns>Array of tags.</returns>
@@ -474,6 +480,31 @@ namespace TAG.Payments.NeuroCredits.Data
 		public Task Resend()
 		{
 			return NeuroCreditsService.ResendInvoice(this);
+		}
+
+		/// <summary>
+		/// Key to get access to invoice
+		/// </summary>
+		public string Key
+		{
+			get
+			{
+				StringBuilder sb = new StringBuilder();
+
+				sb.Append(this.ObjectId);
+				sb.Append(':');
+				sb.Append(this.InvoiceNumber.ToString());
+				sb.Append(':');
+				if (this.Salt is null)
+					sb.Append(this.ObjectId);
+				else
+					sb.Append(Convert.ToBase64String(this.Salt));
+
+				SHA3_256 H = new SHA3_256();
+				byte[] Digest = H.ComputeVariable(Encoding.UTF8.GetBytes(sb.ToString()));
+
+				return Convert.ToBase64String(Digest);
+			}
 		}
 	}
 }

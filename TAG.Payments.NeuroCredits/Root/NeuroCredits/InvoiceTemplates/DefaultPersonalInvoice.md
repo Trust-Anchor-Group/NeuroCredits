@@ -90,6 +90,8 @@ AddStringRow("Name of Bank",Billing.BankName);
 AddStringRow("Bank Branch address",Billing.BranchAddress);
 }}
 
+[Payment link]({{Waher.IoTGateway.Gateway.GetUrl("/NeuroCredits/PayInvoice.md?Nr="+Str(Invoice.InvoiceNumber)+"&Key="+Invoice.Key)}}), if paying via browser.
+
 {{
 ]]```[[;
 PayUrl:="iotsc:"+TAG.Payments.NeuroCredits.NeuroCreditsService.SellEDalerTemplateId;
@@ -97,7 +99,7 @@ PayUrl+="?Amount="+Str(Invoice.Amount);
 PayUrl+="&Currency="+Str(Invoice.Currency);
 Image:=QrEncode(PayUrl,"H",400);
 Encoded:=Encode(Image);
-]]((Encoded[1])):Invoice cancellation link
+]]((Encoded[1])):Payment link, if paying via App
 ((Base64Encode(Encoded[0]);))
 ```
 [[

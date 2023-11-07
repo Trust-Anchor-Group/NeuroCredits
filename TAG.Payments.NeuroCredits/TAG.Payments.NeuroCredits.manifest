@@ -11,6 +11,8 @@
 			<Content fileName="Logo.png"/>
 			<Content fileName="Mail.md"/>
 			<Content fileName="Organizations.md"/>
+			<Content fileName="PayInvoice.md"/>
+			<Content fileName="PayInvoice.cssx"/>
 			<Content fileName="PendingInvoices.md"/>
 			<Content fileName="Settings.js"/>
 			<Content fileName="Settings.md"/>
