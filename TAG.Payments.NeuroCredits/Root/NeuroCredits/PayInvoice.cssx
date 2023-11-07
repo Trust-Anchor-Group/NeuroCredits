@@ -212,7 +212,8 @@ input[type="radio"] + label:before
     vertical-align:center;
     top: 1px;
     bottom: 1px;
-    margin: auto;
+    margin-top: auto;
+    margin-bottom: auto;
 
     border-radius: 1em;
     font-size: 1.75em;
