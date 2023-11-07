@@ -81,6 +81,6 @@ if !empty(Invoice.CancellationContractId) then ]]| Cancellation contract | <a hr
 
 {{if !Invoice.IsPaid then ]]
 <button type="button" class="posButton" onclick="ResendInvoice( ((Nr)) )">Resend Invoice</button>
-<button type="button" class="posButton" onclick="OpenUrl('PayInvoice.md?Nr=((Nr))&Key=((Invoice.Key))')">Payment Link...</button>
+<button type="button" class="posButton" onclick="OpenUrl('PayInvoice.md?Nr=((Nr))&Key=((UrlEncode(Invoice.Key) ))')">Payment Link...</button>
 [[}}
 <button type="button" class="negButton" onclick="Close()">Close</button>

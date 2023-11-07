@@ -105,7 +105,7 @@ AddStringRow("Name of Bank",Billing.BankName);
 AddStringRow("Bank Branch address",Billing.BranchAddress);
 }}
 
-[Payment link]({{Waher.IoTGateway.Gateway.GetUrl("/NeuroCredits/PayInvoice.md?Nr="+Str(Invoice.InvoiceNumber)+"&Key="+Invoice.Key)}}), if paying via browser.
+[Payment link]({{Waher.IoTGateway.Gateway.GetUrl("/NeuroCredits/PayInvoice.md?Nr="+Str(Invoice.InvoiceNumber)+"&Key="+UrlEncode(Invoice.Key))}}), if paying via browser.
 
 {{
 ]]```[[;
