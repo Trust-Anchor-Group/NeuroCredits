@@ -1077,7 +1077,9 @@ namespace TAG.Payments.NeuroCredits
 			Dictionary<CaseInsensitiveString, LinkedList<Invoice>> PersonalByAccount = null;
 			Dictionary<CaseInsensitiveString, LinkedList<Invoice>> OrganizationalByAccount = null;
 
-			foreach (Invoice Invoice in await Database.Find<Invoice>(new FilterFieldLesserThan("DueDate", DateTime.Today.AddDays(-1))))
+			foreach (Invoice Invoice in await Database.Find<Invoice>(new FilterAnd(
+				new FilterFieldEqualTo("IsPaid", false),
+				new FilterFieldLesserThan("DueDate", DateTime.Today.AddDays(-1)))))
 			{
 				if (Invoice.IsOrganizational)
 					AddReminder(ref OrganizationalByAccount, Invoice);
