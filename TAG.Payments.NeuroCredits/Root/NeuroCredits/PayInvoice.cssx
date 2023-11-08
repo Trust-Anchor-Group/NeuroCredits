@@ -248,6 +248,7 @@ label > img
 
 .checkoutQuery
 {
+	font-weight:bold;
 }
 
 .checkoutServices
