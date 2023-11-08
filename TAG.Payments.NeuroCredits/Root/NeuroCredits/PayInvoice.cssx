@@ -133,6 +133,11 @@ input[type=button], input[type=submit], input[type=reset], button
 	background-color: ¤NegColor¤;
 }
 
+.disabledButton
+{
+	background-color:¤Blend(TextColor,BackgroundColor,0.75)¤;
+}
+
 input[type="checkbox"]
 {
 	display:none;
