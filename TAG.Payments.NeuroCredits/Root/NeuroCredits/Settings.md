@@ -4,6 +4,7 @@ Date: 2023-10-19
 Author: Peter Waher
 Master: /Master.md
 Javascript: Settings.js
+Javascript: /Events.js
 Cache-Control: max-age=0, no-cache, no-store
 UserVariable: User
 Privilege: Admin.Payments.NeuroCredits
