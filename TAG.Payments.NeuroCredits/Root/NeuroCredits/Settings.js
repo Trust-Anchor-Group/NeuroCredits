@@ -1410,11 +1410,6 @@ function FindChild(Parent, TagName)
 	return Loop;
 }
 
-function OpenUrl(Url)
-{
-	window.open(Url, "_blank");
-}
-
 function Close()
 {
 	window.close();
