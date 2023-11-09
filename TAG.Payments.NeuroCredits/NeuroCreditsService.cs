@@ -902,12 +902,12 @@ namespace TAG.Payments.NeuroCredits
 				{
 					if (Invoice.IsOrganizational)
 					{
-						Paid = await ServiceConfiguration.DecrementOrganizationalDebt(Invoice.AmountLeft, PI.OrganizationNumber, PI.OrganizationCountry);
+						Paid = await ServiceConfiguration.DecrementOrganizationalDebt(Invoice.AmountLeft, Invoice.OrganizationNumber, Invoice.OrganizationCountry);
 						Add(ref PaidOrganizationalInvoices, Invoice);
 					}
 					else
 					{
-						Paid = await ServiceConfiguration.DecrementPersonalDebt(Invoice.AmountLeft, PI.PersonalNumber, PI.Country);
+						Paid = await ServiceConfiguration.DecrementPersonalDebt(Invoice.AmountLeft, Invoice.PersonalNumber, Invoice.Country);
 						Add(ref PaidPersonalInvoices, Invoice);
 					}
 
@@ -925,9 +925,9 @@ namespace TAG.Payments.NeuroCredits
 				else
 				{
 					if (Invoice.IsOrganizational)
-						Paid = await ServiceConfiguration.DecrementOrganizationalDebt(AmountLeft, PI.OrganizationNumber, PI.OrganizationCountry);
+						Paid = await ServiceConfiguration.DecrementOrganizationalDebt(AmountLeft, Invoice.OrganizationNumber, Invoice.OrganizationCountry);
 					else
-						Paid = await ServiceConfiguration.DecrementPersonalDebt(AmountLeft, PI.PersonalNumber, PI.Country);
+						Paid = await ServiceConfiguration.DecrementPersonalDebt(AmountLeft, Invoice.PersonalNumber, Invoice.Country);
 
 					AmountLeft = 0;
 					AmountPaid += Paid;
@@ -957,12 +957,12 @@ namespace TAG.Payments.NeuroCredits
 					{
 						if (Invoice.IsOrganizational)
 						{
-							Paid = await ServiceConfiguration.DecrementOrganizationalDebt(Invoice.AmountLeft, PI.OrganizationNumber, PI.OrganizationCountry);
+							Paid = await ServiceConfiguration.DecrementOrganizationalDebt(Invoice.AmountLeft, Invoice.OrganizationNumber, Invoice.OrganizationCountry);
 							Add(ref PaidOrganizationalInvoices, Invoice);
 						}
 						else
 						{
-							Paid = await ServiceConfiguration.DecrementPersonalDebt(Invoice.AmountLeft, PI.PersonalNumber, PI.Country);
+							Paid = await ServiceConfiguration.DecrementPersonalDebt(Invoice.AmountLeft, Invoice.PersonalNumber, Invoice.Country);
 							Add(ref PaidPersonalInvoices, Invoice);
 						}
 
@@ -980,9 +980,9 @@ namespace TAG.Payments.NeuroCredits
 					else
 					{
 						if (Invoice.IsOrganizational)
-							Paid = await ServiceConfiguration.DecrementOrganizationalDebt(AmountLeft, PI.OrganizationNumber, PI.OrganizationCountry);
+							Paid = await ServiceConfiguration.DecrementOrganizationalDebt(AmountLeft, Invoice.OrganizationNumber, Invoice.OrganizationCountry);
 						else
-							Paid = await ServiceConfiguration.DecrementPersonalDebt(AmountLeft, PI.PersonalNumber, PI.Country);
+							Paid = await ServiceConfiguration.DecrementPersonalDebt(AmountLeft, Invoice.PersonalNumber, Invoice.Country);
 
 						AmountLeft = 0;
 						AmountPaid += Paid;
@@ -1153,8 +1153,99 @@ namespace TAG.Payments.NeuroCredits
 
 		#region Payments
 
+		/// <summary>
+		/// Callback method that the checkout will call when a process for buying eDaler has concluded.
+		/// </summary>
+		/// <param name="Result">Result of eDaler-purchase attempt.</param>
+		/// <param name="State">State object passed on to from checkout.</param>
 		public static async Task PaymentReceived(PaymentResult Result, object State)
 		{
+			if (!Result.Ok)
+				return;
+
+			if (!int.TryParse(State?.ToString() ?? string.Empty, out int InvoiceNumber))
+			{
+				Log.Warning("A payment for an invoice has been made. But invoice reference is not a valid invoice number.",
+					string.Empty, string.Empty, "InvoiceNotFound",
+					new KeyValuePair<string, object>("Invoice", State),
+					new KeyValuePair<string, object>("Amount", Result.Amount),
+					new KeyValuePair<string, object>("Currency", Result.Currency));
+
+				return;
+			}
+
+			Invoice Invoice = await Database.FindFirstIgnoreRest<Invoice>(new FilterFieldEqualTo("InvoiceNumber", InvoiceNumber));
+			if (Invoice is null)
+			{
+				Log.Warning("A payment for an invoice has been made. But no such invoice was found.",
+					string.Empty, string.Empty, "InvoiceNotFound",
+					new KeyValuePair<string, object>("Invoice", InvoiceNumber),
+					new KeyValuePair<string, object>("Amount", Result.Amount),
+					new KeyValuePair<string, object>("Currency", Result.Currency));
+
+				return;
+			}
+
+			if (Invoice.Currency != Result.Currency)
+			{
+				Log.Warning("A payment for an invoice has been made, in a different currency than the currency used by the invoice.",
+					string.Empty, string.Empty, "InvoiceCurrencyMismatch",
+					new KeyValuePair<string, object>("Invoice", InvoiceNumber),
+					new KeyValuePair<string, object>("Amount", Result.Amount),
+					new KeyValuePair<string, object>("Currency", Result.Currency));
+
+				return;
+			}
+
+			decimal AmountLeft = Result.Amount;
+			decimal Paid;
+			decimal AmountPaid = 0;
+
+			if (AmountLeft >= Invoice.AmountLeft)
+			{
+				if (Invoice.IsOrganizational)
+					Paid = await ServiceConfiguration.DecrementOrganizationalDebt(Invoice.AmountLeft, Invoice.OrganizationNumber, Invoice.OrganizationCountry);
+				else
+					Paid = await ServiceConfiguration.DecrementPersonalDebt(Invoice.AmountLeft, Invoice.PersonalNumber, Invoice.Country);
+
+				AmountLeft -= Paid;
+				AmountPaid += Paid;
+
+				Invoice.AmountPaid += Paid;
+				Invoice.IsPaid = true;
+				Invoice.Paid = DateTime.UtcNow;
+
+				Log.Notice("Neuro-Credits™ cancelled.", Invoice.InvoiceNumber.ToString(), string.Empty, "InvoiceCancelled", Invoice.GetTags());
+			}
+			else
+			{
+				if (Invoice.IsOrganizational)
+					Paid = await ServiceConfiguration.DecrementOrganizationalDebt(AmountLeft, Invoice.OrganizationNumber, Invoice.OrganizationCountry);
+				else
+					Paid = await ServiceConfiguration.DecrementPersonalDebt(AmountLeft, Invoice.PersonalNumber, Invoice.Country);
+
+				AmountLeft = 0;
+				AmountPaid += Paid;
+
+				Invoice.AmountPaid += Paid;
+
+				Log.Informational("Neuro-Credits™ partially paid.", Invoice.InvoiceNumber.ToString(), string.Empty, "InvoicePartialPayment", Invoice.GetTags());
+			}
+
+			await Database.Update(Invoice);
+
+			if (AmountLeft > 0)
+			{
+				Log.Warning("A payment for an invoice has been made. The amount exceeded the amount of the invoice.",
+					string.Empty, string.Empty, "InvoiceAmountExceeded",
+					new KeyValuePair<string, object>("Invoice", InvoiceNumber),
+					new KeyValuePair<string, object>("TotalAmount", Result.Amount),
+					new KeyValuePair<string, object>("Currency", Result.Currency),
+					new KeyValuePair<string, object>("InvoicePayment", AmountPaid),
+					new KeyValuePair<string, object>("AmountLeft", AmountLeft));
+
+				return;
+			}
 		}
 
 		#endregion
