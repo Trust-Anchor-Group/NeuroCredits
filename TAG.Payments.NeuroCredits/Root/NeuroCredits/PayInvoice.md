@@ -50,7 +50,12 @@ else
 </span>
 <br/>
 <span class="dueDate">
-Due date: {{Invoice.DueDate.ToLongDateString()}}
+{{
+if Invoice.IsPaid then
+	]]Invoice was paid ((Invoice.Paid.ToLongDateString() )).[[
+else
+	]]Due date: ((Invoice.DueDate.ToLongDateString() ))[[;
+}}
 </span>
 </p>
 
@@ -140,4 +145,4 @@ if !empty(Invoice.NeuroCreditsContractId) then
 </div>
 </div>
 
-![Checkout](/Checkout.md?Description={{UrlEncode("Payment of invoice "+Str(Nr))}}&Amount={{Invoice.AmountLeft}}&Currency={{Invoice.Currency}}&Country={{Invoice.Country}}&Account={{UrlEncode(Invoice.Account)}}&Callback=TAG.Payments.NeuroCredits.NeuroCreditsService.PaymentReceived&State={{Nr}}&ExcludeProvider=TAG.Payments.NeuroCredits.NeuroCreditsServiceProvider)
+![Checkout](/Checkout.md?Description={{UrlEncode("Payment of invoice "+Str(Nr))}}&IsPaid={{Invoice.IsPaid}}&Amount={{Invoice.AmountLeft}}&Currency={{Invoice.Currency}}&Country={{Invoice.Country}}&Account={{UrlEncode(Invoice.Account)}}&Callback=TAG.Payments.NeuroCredits.NeuroCreditsService.PaymentReceived&State={{Nr}}&ExcludeProvider=TAG.Payments.NeuroCredits.NeuroCreditsServiceProvider)
