@@ -1234,6 +1234,18 @@ namespace TAG.Payments.NeuroCredits
 
 			await Database.Update(Invoice);
 
+			string[] TabIDs = ClientEvents.GetTabIDsForLocation("/NeuroCredits/PayInvoice.md",
+				new KeyValuePair<string, string>("Nr", InvoiceNumber.ToString()));
+
+			if (TabIDs.Length > 0)
+				await ClientEvents.PushEvent(TabIDs, "Reload", string.Empty);
+
+			TabIDs = ClientEvents.GetTabIDsForLocation("/NeuroCredits/Invoice.md",
+				new KeyValuePair<string, string>("Nr", InvoiceNumber.ToString()));
+
+			if (TabIDs.Length > 0)
+				await ClientEvents.PushEvent(TabIDs, "Reload", string.Empty);
+
 			if (AmountLeft > 0)
 			{
 				Log.Warning("A payment for an invoice has been made. The amount exceeded the amount of the invoice.",
@@ -1243,8 +1255,6 @@ namespace TAG.Payments.NeuroCredits
 					new KeyValuePair<string, object>("Currency", Result.Currency),
 					new KeyValuePair<string, object>("InvoicePayment", AmountPaid),
 					new KeyValuePair<string, object>("AmountLeft", AmountLeft));
-
-				return;
 			}
 		}
 
