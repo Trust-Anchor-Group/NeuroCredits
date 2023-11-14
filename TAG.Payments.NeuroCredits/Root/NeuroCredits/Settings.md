@@ -25,6 +25,8 @@ Settings
 <button type="button" class="posButton" onclick="OpenUrl('Billing.md')">Billing...</button>
 <button type="button" class="posButton" onclick="OpenUrl('Accounts.md')">Accounts...</button>
 <button type="button" class="posButton" onclick="OpenUrl('Organizations.md')">Organizations...</button>
+{{if !Waher.IoTGateway.Setup.DomainConfiguration.Instance.UseDomainName or empty(Waher.IoTGateway.Gateway.Domain) then 
+	]]<button type="button" class="posButton" onclick="OpenUrl('Development.md')">Development...</button>[[}}
 
 Invoices
 ------------

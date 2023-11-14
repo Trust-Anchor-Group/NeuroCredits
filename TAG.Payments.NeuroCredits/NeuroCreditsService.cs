@@ -19,6 +19,7 @@ using Waher.Persistence.Filters;
 using Waher.Persistence.Serialization;
 using Waher.Runtime.Counters;
 using Waher.Runtime.Inventory;
+using Waher.Runtime.Settings;
 using Waher.Script;
 using Waher.Script.Objects;
 using Waher.Script.Objects.VectorSpaces;
@@ -30,20 +31,40 @@ namespace TAG.Payments.NeuroCredits
 	/// </summary>
 	public class NeuroCreditsService : IBuyEDalerService, ISellEDalerService
 	{
-		private const string buyEDalerTemplateIdDev = "2cdbfa50-74a5-2e9d-d0a0-8ea5e1999fab@legal.";    // For local development, you need to republish the contracts on the local development neuron,
-		private const string sellEDalerTemplateIdDev = "2ccae7dd-bea4-cdb1-ec97-0d1b0277db08@legal.";   // and replace these values with your local Contract IDs. Do not check those IDs into the repo.
 		private const string buyEDalerTemplateIdProd = "2cdbfa69-6c21-82d9-880e-301af77b53f6@legal.paiwise.tagroot.io";
 		private const string sellEDalerTemplateIdProd = "2cd3fff4-6c21-3386-880e-301af736a5d1@legal.paiwise.tagroot.io";
 
 		/// <summary>
 		/// ID for contract template for buying Neuro-Credits™.
 		/// </summary>
-		public static string BuyEDalerTemplateId => CaseInsensitiveString.IsNullOrEmpty(Gateway.Domain) ? buyEDalerTemplateIdDev : buyEDalerTemplateIdProd;
+		public static string BuyEDalerTemplateId => GetBuyEDalerTemplateId().Result;
+
+		/// <summary>
+		/// Gets the ID for contract template for buying Neuro-Credits™.
+		/// </summary>
+		public static Task<string> GetBuyEDalerTemplateId()
+		{
+			if (CaseInsensitiveString.IsNullOrEmpty(Gateway.Domain))
+				return RuntimeSettings.GetAsync(NeuroCreditsServiceProvider.ServiceId + ".Dev.BuyEDalerTemplateId", string.Empty);
+			else 
+				return Task.FromResult(buyEDalerTemplateIdProd);
+		}
 
 		/// <summary>
 		/// ID for contract template for cancelling Neuro-Credits™.
 		/// </summary>
-		public static string SellEDalerTemplateId => CaseInsensitiveString.IsNullOrEmpty(Gateway.Domain) ? sellEDalerTemplateIdDev : sellEDalerTemplateIdProd;
+		public static string SellEDalerTemplateId => GetSellEDalerTemplateId().Result;
+
+		/// <summary>
+		/// Gets the ID for contract template for cancelling Neuro-Credits™.
+		/// </summary>
+		public static Task<string> GetSellEDalerTemplateId()
+		{
+			if (CaseInsensitiveString.IsNullOrEmpty(Gateway.Domain))
+				return RuntimeSettings.GetAsync(NeuroCreditsServiceProvider.ServiceId + ".Dev.SellEDalerTemplateId", string.Empty);
+			else
+				return Task.FromResult(sellEDalerTemplateIdProd);
+		}
 
 		private readonly NeuroCreditsServiceProvider provider;
 
@@ -140,6 +161,9 @@ namespace TAG.Payments.NeuroCredits
 
 			GenericObject ID = await GetLegalID(AccountName);
 			if (ID is null)
+				return false;
+
+			if (CaseInsensitiveString.IsNullOrEmpty(Gateway.Domain) && string.IsNullOrEmpty(await GetBuyEDalerTemplateId()))
 				return false;
 
 			PersonalInformation PI = new PersonalInformation(ID);
@@ -832,6 +856,9 @@ namespace TAG.Payments.NeuroCredits
 		{
 			ServiceConfiguration ServiceConfiguration = await ServiceConfiguration.GetCurrent();
 			if (!ServiceConfiguration.IsWellDefined)
+				return false;
+
+			if (CaseInsensitiveString.IsNullOrEmpty(Gateway.Domain) && string.IsNullOrEmpty(await GetSellEDalerTemplateId()))
 				return false;
 
 			// ID:=select generic top 1 * from "LegalIdentities" where Account=AccountName and State="Approved" order by Created desc;
