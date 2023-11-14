@@ -62,6 +62,7 @@ if !empty(Invoice.CancellationContractId) then ]]| Cancellation contract | <a hr
 | Country | {{Invoice.Country}} |
 | Jid | [{{Invoice.Jid}}](xmpp:{{Invoice.Jid}}) |
 | Phone | [{{Invoice.PhoneNumber}}](tel:{{Invoice.PhoneNumber}}) |
+| Agent | {{Invoice.Agent}} |
 | e-Mail | [{{Invoice.EMail}}](mailto:{{Invoice.EMail}}) |
 
 {{if Invoice.IsOrganizational then ]]

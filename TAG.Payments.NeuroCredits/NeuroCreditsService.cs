@@ -357,6 +357,7 @@ namespace TAG.Payments.NeuroCredits
 					Country = PI.Country,
 					Jid = PI.Jid,
 					PhoneNumber = PI.PhoneNumber,
+					Agent = PI.Agent,
 					EMail = EMail,
 					Salt = Gateway.NextBytes(32)
 				};

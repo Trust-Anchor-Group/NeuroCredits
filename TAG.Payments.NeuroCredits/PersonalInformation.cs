@@ -96,6 +96,10 @@ namespace TAG.Payments.NeuroCredits
 					this.PhoneNumber = Value;
 					break;
 
+				case "AGENT":
+					this.Agent = Value;
+					break;
+
 				case "JID":
 					this.Jid = Value;
 					break;
@@ -212,6 +216,11 @@ namespace TAG.Payments.NeuroCredits
 		public string PhoneNumber { get; private set; }
 
 		/// <summary>
+		/// Agent identifier
+		/// </summary>
+		public string Agent { get; private set; }
+
+		/// <summary>
 		/// Organization Name
 		/// </summary>
 		public string OrganizationName { get; private set; }
@@ -275,7 +284,7 @@ namespace TAG.Payments.NeuroCredits
 			{
 				if (!CaseInsensitiveString.IsNullOrEmpty(Gateway.Domain))
 				{
-					if (string.IsNullOrEmpty(this.PhoneNumber))
+					if (string.IsNullOrEmpty(this.PhoneNumber) && string.IsNullOrEmpty(this.Agent))
 						return false;
 				}
 

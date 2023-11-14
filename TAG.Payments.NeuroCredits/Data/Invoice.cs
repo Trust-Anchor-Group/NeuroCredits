@@ -233,6 +233,11 @@ namespace TAG.Payments.NeuroCredits.Data
 		public string PhoneNumber { get; set; }
 
 		/// <summary>
+		/// Agent identifier
+		/// </summary>
+		public string Agent { get; set; }
+
+		/// <summary>
 		/// E-mail address of account.
 		/// </summary>
 		public string EMail { get; set; }
@@ -382,6 +387,9 @@ namespace TAG.Payments.NeuroCredits.Data
 
 			if (!string.IsNullOrEmpty(this.PhoneNumber))
 				Result.Add(new KeyValuePair<string, object>("PhoneNumber", this.PhoneNumber));
+
+			if (!string.IsNullOrEmpty(this.Agent))
+				Result.Add(new KeyValuePair<string, object>("Agent", this.Agent));
 
 			if (!string.IsNullOrEmpty(this.EMail))
 				Result.Add(new KeyValuePair<string, object>("EMail", this.EMail));
