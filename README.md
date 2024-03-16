@@ -87,7 +87,7 @@ Example of how to point a web folder to your project folder:
 </FileFolders>
 ```
 
-**Note**: Once file folder reference is added, you need to restart the IoT Gateway service for the change to take effect.
+**Note**: Once the file folder reference is added, you need to restart the IoT Gateway service for the change to take effect.
 
 **Note 2**:  Once the gateway is restarted, the source for the files is in the new location. Any changes you make in the corresponding
 `ProgramData` subfolder will have no effect on what you see via the browser.
