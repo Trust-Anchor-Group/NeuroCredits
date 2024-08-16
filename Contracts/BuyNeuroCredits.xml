@@ -1,4 +1,4 @@
-<contract archiveOpt="P2Y" archiveReq="P1Y" canActAsTemplate="true" duration="P7D" id="BuyNeuroCredits" visibility="PublicSearchable" xmlns="urn:ieee:iot:leg:sc:1.0">
+<contract archiveOpt="P2Y" archiveReq="P1Y" canActAsTemplate="true" duration="P7D" id="BuyNeuroCredits" visibility="PublicSearchable" xmlns="urn:nf:iot:leg:sc:1.0">
 	<BuyEDaler serviceId="TAG.Payments.NeuroCredits.NeuroCreditsService" serviceProvider="TAG.Payments.NeuroCredits.NeuroCreditsServiceProvider" xmlns="https://paiwise.tagroot.io/Schema/PaymentInstructions.xsd">
 		<Amount>
 			<ParameterReference parameter="Amount" />

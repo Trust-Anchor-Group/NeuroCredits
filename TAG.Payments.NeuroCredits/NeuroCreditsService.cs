@@ -31,8 +31,8 @@ namespace TAG.Payments.NeuroCredits
 	/// </summary>
 	public class NeuroCreditsService : IBuyEDalerService, ISellEDalerService
 	{
-		private const string buyEDalerTemplateIdProd = "2cdbfa69-6c21-82d9-880e-301af77b53f6@legal.paiwise.tagroot.io";
-		private const string sellEDalerTemplateIdProd = "2cd3fff4-6c21-3386-880e-301af736a5d1@legal.paiwise.tagroot.io";
+		private const string buyEDalerTemplateIdProd = "2e528bff-b68d-43cb-841b-617a27918722@legal.paiwise.tagroot.io";
+		private const string sellEDalerTemplateIdProd = "2e528c19-b68d-43cd-841b-617a27b6766d@legal.paiwise.tagroot.io";
 
 		/// <summary>
 		/// ID for contract template for buying Neuro-Credits™.
