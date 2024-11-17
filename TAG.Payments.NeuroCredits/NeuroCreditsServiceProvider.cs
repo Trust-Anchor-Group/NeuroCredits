@@ -43,7 +43,7 @@ namespace TAG.Payments.NeuroCredits
 			return Task.CompletedTask;
 		}
 
-		private async void Gateway_OnAfterBackup(object sender, EventArgs e)
+		private async Task Gateway_OnAfterBackup(object sender, EventArgs e)
 		{
 			try
 			{
