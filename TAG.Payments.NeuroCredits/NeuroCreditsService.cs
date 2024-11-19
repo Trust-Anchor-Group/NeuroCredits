@@ -266,7 +266,7 @@ namespace TAG.Payments.NeuroCredits
 		/// <returns>Result of operation.</returns>
 		public async Task<PaymentResult> BuyEDaler(IDictionary<CaseInsensitiveString, object> ContractParameters,
 			IDictionary<CaseInsensitiveString, CaseInsensitiveString> IdentityProperties,
-			decimal Amount, string Currency, string SuccessUrl, string FailureUrl, string CancelUrl, ClientUrlEventHandler ClientUrlCallback, object State)
+			decimal Amount, string Currency, string SuccessUrl, string FailureUrl, string CancelUrl, EventHandlerAsync<ClientUrlEventArgs> ClientUrlCallback, object State)
 		{
 			if (Amount != Math.Floor(Amount))
 				return new PaymentResult("Only whole amounts of Neuro-Credits™ permitted.");
@@ -790,7 +790,7 @@ namespace TAG.Payments.NeuroCredits
 		/// contract to sign.</returns>
 		public async Task<IDictionary<CaseInsensitiveString, object>[]> GetPaymentOptionsForBuyingEDaler(
 			IDictionary<CaseInsensitiveString, CaseInsensitiveString> IdentityProperties,
-			string SuccessUrl, string FailureUrl, string CancelUrl, ClientUrlEventHandler ClientUrlCallback, object State)
+			string SuccessUrl, string FailureUrl, string CancelUrl, EventHandlerAsync<ClientUrlEventArgs> ClientUrlCallback, object State)
 		{
 			ServiceConfiguration ServiceConfiguration = await ServiceConfiguration.GetCurrent();
 			if (!ServiceConfiguration.IsWellDefined)
@@ -895,7 +895,7 @@ namespace TAG.Payments.NeuroCredits
 		/// <returns>Result of operation.</returns>
 		public async Task<PaymentResult> SellEDaler(IDictionary<CaseInsensitiveString, object> ContractParameters,
 			IDictionary<CaseInsensitiveString, CaseInsensitiveString> IdentityProperties,
-			decimal Amount, string Currency, string SuccessUrl, string FailureUrl, string CancelUrl, ClientUrlEventHandler ClientUrlCallback, object State)
+			decimal Amount, string Currency, string SuccessUrl, string FailureUrl, string CancelUrl, EventHandlerAsync<ClientUrlEventArgs> ClientUrlCallback, object State)
 		{
 			decimal Ticks = Amount * 10000;
 			if (Ticks != Math.Floor(Ticks))
@@ -1065,7 +1065,7 @@ namespace TAG.Payments.NeuroCredits
 		/// contract to sign.</returns>
 		public async Task<IDictionary<CaseInsensitiveString, object>[]> GetPaymentOptionsForSellingEDaler(
 			IDictionary<CaseInsensitiveString, CaseInsensitiveString> IdentityProperties,
-			string SuccessUrl, string FailureUrl, string CancelUrl, ClientUrlEventHandler ClientUrlCallback, object State)
+			string SuccessUrl, string FailureUrl, string CancelUrl, EventHandlerAsync<ClientUrlEventArgs> ClientUrlCallback, object State)
 		{
 			ServiceConfiguration ServiceConfiguration = await ServiceConfiguration.GetCurrent();
 			if (!ServiceConfiguration.IsWellDefined)
