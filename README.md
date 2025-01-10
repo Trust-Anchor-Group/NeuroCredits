@@ -9,7 +9,7 @@ The solution contains the following C# projects:
 
 | Project                      | Framework         | Description |
 |:-----------------------------|:------------------|:------------|
-| `TAG.Payments.NeuroCredits`  | .NET Standard 2.0 | Service module for the [TAG Neuron](https://lab.tagroot.io/Documentation/Index.md), permitting authorized users to buy eDaler® on credit. |
+| `TAG.Payments.NeuroCredits`  | .NET Standard 2.1 | Service module for the [TAG Neuron](https://lab.tagroot.io/Documentation/Index.md), permitting authorized users to buy eDaler® on credit. |
 
 ## Nugets
 

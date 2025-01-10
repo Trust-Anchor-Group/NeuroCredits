@@ -19,6 +19,7 @@ using Waher.Persistence.Filters;
 using Waher.Persistence.Serialization;
 using Waher.Runtime.Counters;
 using Waher.Runtime.Inventory;
+using Waher.Runtime.IO;
 using Waher.Runtime.Settings;
 using Waher.Script;
 using Waher.Script.Objects;
@@ -456,13 +457,13 @@ namespace TAG.Payments.NeuroCredits
 			string ObjectId = null;
 			try
 			{
-				string Styles = await Resources.ReadAllTextAsync(StylesFileName);
+				string Styles = await Files.ReadAllTextAsync(StylesFileName);
 
 				ObjectId = ReceiptTemplateFileName;
-				string ReceiptMarkdown = await Resources.ReadAllTextAsync(ReceiptTemplateFileName);
+				string ReceiptMarkdown = await Files.ReadAllTextAsync(ReceiptTemplateFileName);
 
 				ObjectId = InvoiceTemplateFileName;
-				string InvoiceMarkdown = await Resources.ReadAllTextAsync(InvoiceTemplateFileName);
+				string InvoiceMarkdown = await Files.ReadAllTextAsync(InvoiceTemplateFileName);
 				string Markdown;
 
 				MailConfiguration MailConfiguration = await MailConfiguration.GetCurrent();
@@ -499,7 +500,7 @@ namespace TAG.Payments.NeuroCredits
 
 						int i = HTML.IndexOf("<html");
 						if (i > 0)
-							HTML = HTML.Substring(i);
+							HTML = HTML[i..];
 
 						StringBuilder Reminder = new StringBuilder();
 						DateTime TP = DateTime.UtcNow;
@@ -609,8 +610,8 @@ namespace TAG.Payments.NeuroCredits
 
 			try
 			{
-				string Styles = await Resources.ReadAllTextAsync(StylesFileName);
-				string CancellationMarkdown = await Resources.ReadAllTextAsync(CancellationTemplateFileName);
+				string Styles = await Files.ReadAllTextAsync(StylesFileName);
+				string CancellationMarkdown = await Files.ReadAllTextAsync(CancellationTemplateFileName);
 				string Markdown;
 
 				MailConfiguration MailConfiguration = await MailConfiguration.GetCurrent();
@@ -637,7 +638,7 @@ namespace TAG.Payments.NeuroCredits
 
 						int i = HTML.IndexOf("<html");
 						if (i > 0)
-							HTML = HTML.Substring(i);
+							HTML = HTML[i..];
 
 						StringBuilder Reminder = new StringBuilder();
 						DateTime TP = DateTime.UtcNow;
@@ -697,7 +698,7 @@ namespace TAG.Payments.NeuroCredits
 				}
 				else
 				{
-					Calendar.AppendLine(Row.Substring(i));
+					Calendar.AppendLine(Row[i..]);
 					break;
 				}
 			}
@@ -1045,9 +1046,7 @@ namespace TAG.Payments.NeuroCredits
 
 		private static void Add(ref LinkedList<Invoice> Invoices, Invoice Invoice)
 		{
-			if (Invoices is null)
-				Invoices = new LinkedList<Invoice>();
-
+			Invoices ??= new LinkedList<Invoice>();
 			Invoices.AddLast(Invoice);
 		}
 
@@ -1121,8 +1120,7 @@ namespace TAG.Payments.NeuroCredits
 
 		private static void AddReminder(ref Dictionary<CaseInsensitiveString, LinkedList<Invoice>> ByAccount, Invoice Invoice)
 		{
-			if (ByAccount is null)
-				ByAccount = new Dictionary<CaseInsensitiveString, LinkedList<Invoice>>();
+			ByAccount ??= new Dictionary<CaseInsensitiveString, LinkedList<Invoice>>();
 
 			if (!ByAccount.TryGetValue(Invoice.Account, out LinkedList<Invoice> Invoices))
 			{
