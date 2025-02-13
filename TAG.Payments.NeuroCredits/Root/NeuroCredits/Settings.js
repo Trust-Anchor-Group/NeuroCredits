@@ -373,7 +373,7 @@ function OkAccount(Control)
 	catch (e)
 	{
 		console.log(e);
-		Popup.Alert("Input fields contain errors.");
+		Popup.Alert("Input fields contain errors."); // await is not needed
 	}
 }
 
@@ -1094,7 +1094,7 @@ function OkOrganization(Control)
 	catch (e)
 	{
 		console.log(e);
-		Popup.Alert("Input fields contain errors.");
+		Popup.Alert("Input fields contain errors."); // await is not needed
 	}
 }
 
@@ -1576,9 +1576,9 @@ window.onscroll = function ()
 function TestMailSent(Result)
 {
 	if (Result)
-		Popup.Alert("Test e-mail was successfully sent.");
+		Popup.Alert("Test e-mail was successfully sent."); // await is not needed
 	else
-		Popup.Alert("An error occurred when attempting to send test e-mail. Check logs for more information.");
+		Popup.Alert("An error occurred when attempting to send test e-mail. Check logs for more information."); // await is not needed
 }
 
 async function ResendInvoice(InvoiceNr)
@@ -1591,9 +1591,9 @@ async function ResendInvoice(InvoiceNr)
 			if (xhttp.readyState === 4)
 			{
 				if (xhttp.status === 200)
-					Popup.Alert("Invoice resent.");
+					Popup.Alert("Invoice resent."); // await is not needed
 				else
-					Popup.Alert("Unable to resend invoice: " + xhttp.responseText);
+					Popup.Alert("Unable to resend invoice: " + xhttp.responseText); // await is not needed
 			}
 		};
 
