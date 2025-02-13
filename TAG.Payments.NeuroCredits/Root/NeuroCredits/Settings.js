@@ -373,7 +373,7 @@ function OkAccount(Control)
 	catch (e)
 	{
 		console.log(e);
-		window.alert("Input fields contain errors.");
+		Popup.Alert("Input fields contain errors.");
 	}
 }
 
@@ -626,9 +626,9 @@ function CancelAccount(Control)
 	}
 }
 
-function DeleteAccount(Control)
+async function DeleteAccount(Control)
 {
-	if (!window.confirm("Are you sure you want to delete these account settings?"))
+	if (!(await Popup.Confirm("Are you sure you want to delete these account settings?")))
 		return;
 
 	var xhttp = new XMLHttpRequest();
@@ -1094,7 +1094,7 @@ function OkOrganization(Control)
 	catch (e)
 	{
 		console.log(e);
-		window.alert("Input fields contain errors.");
+		Popup.Alert("Input fields contain errors.");
 	}
 }
 
@@ -1355,9 +1355,9 @@ function CancelOrganization(Control)
 	}
 }
 
-function DeleteOrganization(Control)
+async function DeleteOrganization(Control)
 {
-	if (!window.confirm("Are you sure you want to delete these organization settings?"))
+	if (!(await Popup.Confirm("Are you sure you want to delete these organization settings?")))
 		return;
 
 	var xhttp = new XMLHttpRequest();
@@ -1576,14 +1576,14 @@ window.onscroll = function ()
 function TestMailSent(Result)
 {
 	if (Result)
-		window.alert("Test e-mail was successfully sent.");
+		Popup.Alert("Test e-mail was successfully sent.");
 	else
-		window.alert("An error occurred when attempting to send test e-mail. Check logs for more information.");
+		Popup.Alert("An error occurred when attempting to send test e-mail. Check logs for more information.");
 }
 
-function ResendInvoice(InvoiceNr)
+async function ResendInvoice(InvoiceNr)
 {
-	if (window.confirm("Are you sure you want to resend the invocie? It may incur costs that cannot be deferred to the buyer."))
+	if ((await Popup.Confirm("Are you sure you want to resend the invocie? It may incur costs that cannot be deferred to the buyer.")))
 	{
 		var xhttp = new XMLHttpRequest();
 		xhttp.onreadystatechange = function ()
@@ -1591,9 +1591,9 @@ function ResendInvoice(InvoiceNr)
 			if (xhttp.readyState === 4)
 			{
 				if (xhttp.status === 200)
-					window.alert("Invoice resent.");
+					Popup.Alert("Invoice resent.");
 				else
-					window.alert("Unable to resend invoice: " + xhttp.responseText);
+					Popup.Alert("Unable to resend invoice: " + xhttp.responseText);
 			}
 		};
 
